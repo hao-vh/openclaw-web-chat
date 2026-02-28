@@ -1,6 +1,6 @@
 {
-  "id": "xiaowu",
-  "channels": ["xiaowu"],
+  "id": "web-chat",
+  "channels": ["web-chat"],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

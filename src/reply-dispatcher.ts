@@ -1,8 +1,8 @@
 import type { ClawdbotConfig, RuntimeEnv, ReplyPayload } from "openclaw/plugin-sdk";
-import { getXiaoWuRuntime } from "./runtime.js";
-import { sendMessageXiaoWu } from "./send.js";
+import { getOpenClaw Web ChatRuntime } from "./runtime.js";
+import { sendMessageOpenClaw Web Chat } from "./send.js";
 
-export interface XiaoWuReplyDispatcherParams {
+export interface OpenClaw Web ChatReplyDispatcherParams {
   cfg: ClawdbotConfig;
   agentId: string;
   runtime: RuntimeEnv;
@@ -10,21 +10,21 @@ export interface XiaoWuReplyDispatcherParams {
   senderId: string;
 }
 
-export function createXiaoWuReplyDispatcher(params: XiaoWuReplyDispatcherParams) {
+export function createOpenClaw Web ChatReplyDispatcher(params: OpenClaw Web ChatReplyDispatcherParams) {
   const { cfg, agentId, runtime, chatId, senderId } = params;
   const log = runtime?.log ?? console.log;
   
-  log('[XiaoWu Reply] Creating reply dispatcher for chat: ' + chatId);
+  log('[OpenClaw Web Chat Reply] Creating reply dispatcher for chat: ' + chatId);
   
-  const core = getXiaoWuRuntime();
+  const core = getOpenClaw Web ChatRuntime();
   
   // 获取文本分片限制
   const textChunkLimit = core.channel.text.resolveTextChunkLimit({
     cfg,
-    channel: 'xiaowu',
+    channel: 'web-chat',
     defaultLimit: 2000,
   });
-  const chunkMode = core.channel.text.resolveChunkMode(cfg, 'xiaowu');
+  const chunkMode = core.channel.text.resolveChunkMode(cfg, 'web-chat');
   
   // 创建回复分发器
   const replyResult = core.channel.reply.createReplyDispatcherWithTyping({
@@ -34,50 +34,50 @@ export function createXiaoWuReplyDispatcher(params: XiaoWuReplyDispatcherParams)
     deliver: async (payload: ReplyPayload) => {
       const text = payload.text ?? '';
       if (!text.trim()) {
-        log('[XiaoWu Reply] Empty text, skipping');
+        log('[OpenClaw Web Chat Reply] Empty text, skipping');
         return;
       }
       
-      log('[XiaoWu Reply] Delivering: ' + text.slice(0, 100));
+      log('[OpenClaw Web Chat Reply] Delivering: ' + text.slice(0, 100));
       
       // 分片处理
       const chunks = core.channel.text.chunkTextWithMode(text, textChunkLimit, chunkMode);
-      log('[XiaoWu Reply] Sending ' + chunks.length + ' chunks');
+      log('[OpenClaw Web Chat Reply] Sending ' + chunks.length + ' chunks');
       
       for (const chunk of chunks) {
         try {
-          const result = await sendMessageXiaoWu({
+          const result = await sendMessageOpenClaw Web Chat({
             cfg,
             to: 'chat:' + chatId,
             text: chunk,
           });
           
           if (result.error) {
-            log('[XiaoWu Reply] Failed: ' + result.error);
+            log('[OpenClaw Web Chat Reply] Failed: ' + result.error);
             throw new Error(result.error);
           }
           
-          log('[XiaoWu Reply] Success, messageId: ' + result.messageId);
+          log('[OpenClaw Web Chat Reply] Success, messageId: ' + result.messageId);
         } catch (err) {
-          log('[XiaoWu Reply] Error: ' + err);
+          log('[OpenClaw Web Chat Reply] Error: ' + err);
           throw err;
         }
       }
     },
     onError: (err, info) => {
-      log('[XiaoWu Reply] ' + info.kind + ' failed: ' + err);
+      log('[OpenClaw Web Chat Reply] ' + info.kind + ' failed: ' + err);
     },
     onIdle: () => {
-      log('[XiaoWu Reply] Dispatcher idle');
+      log('[OpenClaw Web Chat Reply] Dispatcher idle');
     },
   });
   
-  log('[XiaoWu Reply] replyResult type: ' + typeof replyResult);
-  log('[XiaoWu Reply] replyResult keys: ' + Object.keys(replyResult || {}).join(', '));
+  log('[OpenClaw Web Chat Reply] replyResult type: ' + typeof replyResult);
+  log('[OpenClaw Web Chat Reply] replyResult keys: ' + Object.keys(replyResult || {}).join(', '));
   
   const { dispatcher, replyOptions, markDispatchIdle } = replyResult || {};
   
-  log('[XiaoWu Reply] replyOptions keys: ' + Object.keys(replyOptions || {}).join(', '));
+  log('[OpenClaw Web Chat Reply] replyOptions keys: ' + Object.keys(replyOptions || {}).join(', '));
   
   // 添加 reply 属性到 replyOptions
   const finalReplyOptions = {
@@ -85,8 +85,8 @@ export function createXiaoWuReplyDispatcher(params: XiaoWuReplyDispatcherParams)
     reply: dispatcher,
   };
   
-  log('[XiaoWu Reply] finalReplyOptions keys: ' + Object.keys(finalReplyOptions || {}).join(', '));
-  log('[XiaoWu Reply] finalReplyOptions.reply: ' + (finalReplyOptions?.reply ? 'exists' : 'missing'));
+  log('[OpenClaw Web Chat Reply] finalReplyOptions keys: ' + Object.keys(finalReplyOptions || {}).join(', '));
+  log('[OpenClaw Web Chat Reply] finalReplyOptions.reply: ' + (finalReplyOptions?.reply ? 'exists' : 'missing'));
   
   return {
     dispatcher,

@@ -1,5 +1,5 @@
 /**
- * XiaoWu 消息处理逻辑 - OpenClaw Core 路由接入版
+ * OpenClaw Web Chat 消息处理逻辑 - OpenClaw Core 路由接入版
  */
 
 import type {
@@ -9,12 +9,12 @@ import type {
   InboundMessage,
   Envelope,
 } from "openclaw/plugin-sdk";
-import type { XiaoWuMessageEvent } from "./types.js";
-import { sendMessageXiaoWu } from "./send.js";
+import type { OpenClaw Web ChatMessageEvent } from "./types.js";
+import { sendMessageOpenClaw Web Chat } from "./send.js";
 
-export interface HandleXiaoWuMessageOpts {
+export interface HandleOpenClaw Web ChatMessageOpts {
   cfg: ClawdbotConfig;
-  event: XiaoWuMessageEvent;
+  event: OpenClaw Web ChatMessageEvent;
   runtime?: RuntimeEnv;
   chatHistories: Map<string, HistoryEntry[]>;
   accountId: string;
@@ -32,16 +32,16 @@ export interface HandleXiaoWuMessageOpts {
  * 4. 等待 OpenClaw 处理并返回回复
  * 5. 将回复发送回 Web 聊天室
  */
-export async function handleXiaoWuMessage(
-  opts: HandleXiaoWuMessageOpts
+export async function handleOpenClaw Web ChatMessage(
+  opts: HandleOpenClaw Web ChatMessageOpts
 ): Promise<void> {
   const { cfg, event, runtime, chatHistories, accountId, onMessage } = opts;
   const log = runtime?.log ?? console.log;
 
-  log(`[XiaoWu ${accountId}] Received message from ${event.senderName}: ${event.content.slice(0, 50)}...`);
+  log(`[OpenClaw Web Chat ${accountId}] Received message from ${event.senderName}: ${event.content.slice(0, 50)}...`);
 
   // 标准化消息格式为 OpenClaw Envelope
-  const envelope = createXiaoWuEnvelope(event, accountId);
+  const envelope = createOpenClaw Web ChatEnvelope(event, accountId);
 
   // 保存到历史记录
   const historyKey = `${accountId}:${envelope.chat_id}`;
@@ -58,21 +58,21 @@ export async function handleXiaoWuMessage(
     try {
       await onMessage(envelope);
     } catch (err) {
-      log(`[XiaoWu ${accountId}] Error routing message: ${err}`);
+      log(`[OpenClaw Web Chat ${accountId}] Error routing message: ${err}`);
       
       // 发送错误提示给用户
       await sendReply(cfg, accountId, event, "抱歉，处理消息时出错了，请稍后重试。");
     }
   } else {
-    log(`[XiaoWu ${accountId}] Warning: No onMessage handler registered`);
+    log(`[OpenClaw Web Chat ${accountId}] Warning: No onMessage handler registered`);
   }
 }
 
 /**
  * 创建 OpenClaw Envelope
  */
-function createXiaoWuEnvelope(
-  event: XiaoWuMessageEvent,
+function createOpenClaw Web ChatEnvelope(
+  event: OpenClaw Web ChatMessageEvent,
   accountId: string
 ): Envelope {
   const chatId = event.isDirect
@@ -82,7 +82,7 @@ function createXiaoWuEnvelope(
   return {
     // 消息元数据
     message_id: event.messageId,
-    channel: "xiaowu",
+    channel: "web-chat",
     chat_id: chatId,
     
     // 作者信息
@@ -112,10 +112,10 @@ function createXiaoWuEnvelope(
  * 
  * 这是 OpenClaw Core 处理完消息后调用的回调
  */
-export async function sendXiaoWuReply(
+export async function sendOpenClaw Web ChatReply(
   cfg: ClawdbotConfig,
   accountId: string,
-  originalEvent: XiaoWuMessageEvent,
+  originalEvent: OpenClaw Web ChatMessageEvent,
   replyText: string
 ): Promise<void> {
   const chatId = originalEvent.isDirect
@@ -126,7 +126,7 @@ export async function sendXiaoWuReply(
     ? `user:${originalEvent.senderId}`
     : `chat:${originalEvent.chatId}`;
 
-  await sendMessageXiaoWu({
+  await sendMessageOpenClaw Web Chat({
     cfg,
     accountId,
     to: target,
@@ -141,14 +141,14 @@ export async function sendXiaoWuReply(
 async function sendReply(
   cfg: ClawdbotConfig,
   accountId: string,
-  originalEvent: XiaoWuMessageEvent,
+  originalEvent: OpenClaw Web ChatMessageEvent,
   text: string
 ): Promise<void> {
   const target = originalEvent.isDirect
     ? `user:${originalEvent.senderId}`
     : `chat:${originalEvent.chatId}`;
 
-  await sendMessageXiaoWu({
+  await sendMessageOpenClaw Web Chat({
     cfg,
     accountId,
     to: target,
@@ -160,7 +160,7 @@ async function sendReply(
 /**
  * 构建回复消息格式
  */
-export function buildXiaoWuReply(
+export function buildOpenClaw Web ChatReply(
   text: string,
   replyTo?: string
 ): {
@@ -181,12 +181,12 @@ export function buildXiaoWuReply(
  * 用于更高级的集成场景
  */
 export function createInboundMessage(
-  event: XiaoWuMessageEvent,
+  event: OpenClaw Web ChatMessageEvent,
   accountId: string
 ): InboundMessage {
   return {
     id: event.messageId,
-    channel: "xiaowu",
+    channel: "web-chat",
     chat: {
       id: event.isDirect ? event.senderId : event.chatId,
       type: event.isDirect ? "direct" : "group",

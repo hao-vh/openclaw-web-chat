@@ -1,12 +1,12 @@
 /**
  * Ruyuan-IM 协议适配器
  * 
- * 将 XiaoWu 协议与 Ruyuan-IM 协议相互转换
+ * 将 OpenClaw Web Chat 协议与 Ruyuan-IM 协议相互转换
  */
 
 import type {
-  XiaoWuMessageEvent,
-  XiaoWuSendMessageRequest,
+  OpenClaw Web ChatMessageEvent,
+  OpenClaw Web ChatSendMessageRequest,
   RuyuanJsonCommand,
   RuyuanMessageSendRequest,
   RuyuanMessagePush,
@@ -20,14 +20,14 @@ import type {
 // ==================== 协议转换函数 ====================
 
 /**
- * 将 Ruyuan-IM 消息推送转换为 XiaoWu 消息事件
+ * 将 Ruyuan-IM 消息推送转换为 OpenClaw Web Chat 消息事件
  * 
- * Ruyuan-IM (type: 6) -> XiaoWuMessageEvent
+ * Ruyuan-IM (type: 6) -> OpenClaw Web ChatMessageEvent
  */
 export function convertFromRuyuanPush(
   ruyuanMsg: RuyuanJsonCommand,
   senderNameResolver?: (userId: number) => string
-): XiaoWuMessageEvent {
+): OpenClaw Web ChatMessageEvent {
   const body = ruyuanMsg.body as RuyuanMessagePush;
   
   // 解析发送者名称（如果提供了解析器）
@@ -50,18 +50,18 @@ export function convertFromRuyuanPush(
 }
 
 /**
- * 将 XiaoWu 发送请求转换为 Ruyuan-IM 发送消息格式
+ * 将 OpenClaw Web Chat 发送请求转换为 Ruyuan-IM 发送消息格式
  * 
- * XiaoWuSendMessageRequest -> Ruyuan-IM (type: 5)
+ * OpenClaw Web ChatSendMessageRequest -> Ruyuan-IM (type: 5)
  */
 export function convertToRuyuanSend(
-  xiaowuMsg: XiaoWuSendMessageRequest,
+  web-chatMsg: OpenClaw Web ChatSendMessageRequest,
   userId: number,
   clientType: number,
   sequence: number
 ): RuyuanJsonCommand {
-  const chatId = parseInt(xiaowuMsg.chatId, 10);
-  const isDirect = !xiaowuMsg.chatId.startsWith("group:");
+  const chatId = parseInt(web-chatMsg.chatId, 10);
+  const isDirect = !web-chatMsg.chatId.startsWith("group:");
   
   const body: RuyuanMessageSendRequest = {
     messageId: generateMessageId(),
@@ -69,8 +69,8 @@ export function convertToRuyuanSend(
     fromId: userId,
     toId: chatId,
     chatId: chatId,
-    messageType: xiaowuMsg.messageType === "text" ? 1 : 1, // 暂时只支持文本
-    content: xiaowuMsg.content,
+    messageType: web-chatMsg.messageType === "text" ? 1 : 1, // 暂时只支持文本
+    content: web-chatMsg.content,
     sequence,
     timestamp: Math.floor(Date.now() / 1000), // 秒级时间戳
   };
@@ -227,11 +227,11 @@ export function isRuyuanMessage(data: any): boolean {
 }
 
 /**
- * 判断消息是否为 XiaoWu 格式
+ * 判断消息是否为 OpenClaw Web Chat 格式
  * 
  * 特征：包含 messageId, chatId, senderId, content 字段
  */
-export function isXiaoWuMessage(data: any): boolean {
+export function isOpenClaw Web ChatMessage(data: any): boolean {
   return (
     typeof data === "object" &&
     data !== null &&

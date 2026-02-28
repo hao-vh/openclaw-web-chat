@@ -1,7 +1,7 @@
 {
-  "name": "@openclaw/xiaowu",
+  "name": "@openclaw/web-chat",
   "version": "1.3.0",
-  "description": "OpenClaw XiaoWu Web Chat channel plugin with Ruyuan-IM protocol support",
+  "description": "OpenClaw OpenClaw Web Chat Web Chat channel plugin with Ruyuan-IM protocol support",
   "type": "module",
   "dependencies": {
     "@sinclair/typebox": "0.34.48",
@@ -16,11 +16,11 @@
     ],
     "channel": {
       "id": "xiaowu",
-      "label": "XiaoWu",
-      "selectionLabel": "XiaoWu Web Chat (小武聊天室)",
+      "label": "OpenClaw Web Chat",
+      "selectionLabel": "OpenClaw Web Chat Web Chat (OpenClaw Web Chat)",
       "docsPath": "/channels/xiaowu",
       "docsLabel": "xiaowu",
-      "blurb": "Custom Web Chat integration with XiaoWu native and Ruyuan-IM protocol support.",
+      "blurb": "Custom Web Chat integration with OpenClaw Web Chat native and Ruyuan-IM protocol support.",
       "order": 100,
       "quickstartAllowFrom": true
     },

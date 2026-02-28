@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# XiaoWu Plugin 一键安装脚本
-# 在任何 OpenClaw 环境中快速安装 XiaoWu Web Chat 插件
+# OpenClaw Web Chat Plugin 一键安装脚本
+# 在任何 OpenClaw 环境中快速安装 OpenClaw Web Chat Web Chat 插件
 #
 # 使用方法:
-#   curl -fsSL https://raw.githubusercontent.com/your-repo/xiaowu-plugin/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/your-repo/web-chat-plugin/main/install.sh | bash
 #   或
-#   bash install-xiaowu.sh
+#   bash install-web-chat.sh
 
 set -e
 
@@ -18,10 +18,10 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # 配置
-PLUGIN_NAME="xiaowu"
+PLUGIN_NAME="web-chat"
 PLUGIN_VERSION="1.3.0"
-INSTALL_DIR="${HOME}/.openclaw/extensions/xiaowu"
-BACKUP_DIR="${HOME}/.openclaw/backups/xiaowu-$(date +%Y%m%d-%H%M%S)"
+INSTALL_DIR="${HOME}/.openclaw/extensions/web-chat"
+BACKUP_DIR="${HOME}/.openclaw/backups/web-chat-$(date +%Y%m%d-%H%M%S)"
 
 # 日志函数
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -67,7 +67,7 @@ backup_existing() {
 
 # 安装插件
 install_plugin() {
-    log_info "安装 XiaoWu 插件..."
+    log_info "安装 OpenClaw Web Chat 插件..."
     
     # 创建安装目录
     mkdir -p "$INSTALL_DIR"
@@ -96,17 +96,17 @@ let config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
 // 添加插件配置
 config.plugins = config.plugins || { entries: {}, installs: {} };
-config.plugins.entries.xiaowu = { enabled: true };
-config.plugins.installs.xiaowu = {
+config.plugins.entries.web-chat = { enabled: true };
+config.plugins.installs.web-chat = {
     source: "local",
-    sourcePath: path.join(home, ".openclaw/extensions/xiaowu"),
+    sourcePath: path.join(home, ".openclaw/extensions/web-chat"),
     version: "1.3.0",
     installedAt: new Date().toISOString()
 };
 
 // 添加频道配置
 config.channels = config.channels || {};
-config.channels.xiaowu = {
+config.channels.web-chat = {
     enabled: true,
     wsUrl: "ws://localhost:3456/ws",
     apiUrl: "http://localhost:3456",
@@ -134,15 +134,15 @@ print_usage() {
     cat << 'EOF'
 
 ========================================
-  🎉 XiaoWu 插件安装完成！
+  🎉 OpenClaw Web Chat 插件安装完成！
 ========================================
 
-📁 安装目录: ~/.openclaw/extensions/xiaowu
+📁 安装目录: ~/.openclaw/extensions/web-chat
 
 🚀 快速开始:
 
 1. 启动测试服务器:
-   cd ~/.openclaw/extensions/xiaowu
+   cd ~/.openclaw/extensions/web-chat
    node example-server.js
 
 2. 打开浏览器访问:
@@ -151,15 +151,15 @@ print_usage() {
 3. 在聊天室发送消息，AI 将自动回复
 
 📖 查看文档:
-   cat ~/.openclaw/extensions/xiaowu/README.md
+   cat ~/.openclaw/extensions/web-chat/README.md
 
 🔧 配置说明:
    配置文件: ~/.openclaw/openclaw.json
    
-   修改 xiaowu 配置:
+   修改 web-chat 配置:
    {
      "channels": {
-       "xiaowu": {
+       "web-chat": {
          "enabled": true,
          "wsUrl": "ws://localhost:3456/ws",
          "apiUrl": "http://localhost:3456"
@@ -168,7 +168,7 @@ print_usage() {
    }
 
 📊 查看日志:
-   tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log | grep xiaowu
+   tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log | grep web-chat
 
 ========================================
 EOF
@@ -177,7 +177,7 @@ EOF
 # 主函数
 main() {
     echo "========================================"
-    echo "  XiaoWu Plugin 安装程序 v1.3.0"
+    echo "  OpenClaw Web Chat Plugin 安装程序 v1.3.0"
     echo "========================================"
     echo ""
     

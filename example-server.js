@@ -1,8 +1,8 @@
 /**
- * XiaoWu Web 聊天室后端示例 (ES Module 版本)
+ * OpenClaw Web Chat Web 聊天室后端示例 (ES Module 版本)
  * 使用 Express + WebSocket
  * 
- * 这是一个简单的示例，展示如何与 XiaoWu Channel Plugin 对接
+ * 这是一个简单的示例，展示如何与 OpenClaw Web Chat Channel Plugin 对接
  */
 
 import express from 'express';
@@ -203,7 +203,7 @@ setInterval(() => {
 // ========== 启动服务 ==========
 
 server.listen(PORT, () => {
-  console.log(`🚀 XiaoWu Chat Server running on port ${PORT}`);
+  console.log(`🚀 OpenClaw Web Chat Chat Server running on port ${PORT}`);
   console.log(`📡 WebSocket: ws://localhost:${PORT}/ws`);
   console.log(`🌐 HTTP API: http://localhost:${PORT}/api`);
   console.log(`🔑 API Token: ${API_TOKEN}`);
@@ -215,7 +215,7 @@ app.get('/', (req, res) => {
 <!DOCTYPE html>
 <html>
 <head>
-  <title>XiaoWu Chat</title>
+  <title>OpenClaw Web Chat Chat</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
     #messages { border: 1px solid #ddd; height: 400px; overflow-y: auto; padding: 10px; margin: 20px 0; }
@@ -231,7 +231,7 @@ app.get('/', (req, res) => {
   </style>
 </head>
 <body>
-  <h1>🎉 XiaoWu Chat Room</h1>
+  <h1>🎉 OpenClaw Web Chat Chat Room</h1>
   <div id="status" class="disconnected">Disconnected</div>
   <div id="messages"></div>
   <div id="input-area">

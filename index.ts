@@ -1,22 +1,22 @@
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
-import { setXiaoWuRuntime } from "./src/runtime.js";
-import { sendMessageXiaoWu } from "./src/send.js";
-import { xiaowuOutbound } from "./src/outbound.js";
+import { setOpenClaw Web ChatRuntime } from "./src/runtime.js";
+import { sendMessageOpenClaw Web Chat } from "./src/send.js";
+import { web-chatOutbound } from "./src/outbound.js";
 
 const meta = {
-  id: "xiaowu",
-  label: "XiaoWu",
-  selectionLabel: "XiaoWu Web Chat",
-  docsPath: "/channels/xiaowu",
-  docsLabel: "xiaowu",
+  id: "web-chat",
+  label: "OpenClaw Web Chat",
+  selectionLabel: "OpenClaw Web Chat Web Chat",
+  docsPath: "/channels/web-chat",
+  docsLabel: "web-chat",
   blurb: "Connect your custom Web Chat room to OpenClaw.",
   aliases: [],
   order: 100,
 };
 
-const xiaowuPlugin = {
-  id: "xiaowu",
+const web-chatPlugin = {
+  id: "web-chat",
   meta,
   capabilities: {
     chatTypes: ["direct", "channel"],
@@ -34,10 +34,10 @@ const xiaowuPlugin = {
   },
   gateway: {
     startAccount: async (ctx) => {
-      console.log("[XiaoWu] Starting provider...");
+      console.log("[OpenClaw Web Chat] Starting provider...");
       ctx.setStatus({ accountId: ctx.accountId, port: null });
-      const { monitorXiaoWuProvider } = await import("./src/monitor.js");
-      return monitorXiaoWuProvider({
+      const { monitorOpenClaw Web ChatProvider } = await import("./src/monitor.js");
+      return monitorOpenClaw Web ChatProvider({
         config: ctx.cfg,
         runtime: ctx.runtime,
         abortSignal: ctx.abortSignal,
@@ -46,24 +46,24 @@ const xiaowuPlugin = {
     },
   },
   send: {
-    message: sendMessageXiaoWu,
+    message: sendMessageOpenClaw Web Chat,
   },
-  outbound: xiaowuOutbound,
+  outbound: web-chatOutbound,
 };
 
 const plugin = {
-  id: "xiaowu",
-  name: "XiaoWu",
+  id: "web-chat",
+  name: "OpenClaw Web Chat",
   version: "1.3.0",
-  description: "XiaoWu Web Chat channel plugin",
+  description: "OpenClaw Web Chat Web Chat channel plugin",
   configSchema: emptyPluginConfigSchema(),
   register(api: OpenClawPluginApi) {
-    console.log("[XiaoWu] Registering channel...");
-    setXiaoWuRuntime(api.runtime);
-    api.registerChannel({ plugin: xiaowuPlugin });
-    console.log("[XiaoWu] Channel registered!");
+    console.log("[OpenClaw Web Chat] Registering channel...");
+    setOpenClaw Web ChatRuntime(api.runtime);
+    api.registerChannel({ plugin: web-chatPlugin });
+    console.log("[OpenClaw Web Chat] Channel registered!");
   },
 };
 
-export { xiaowuPlugin, sendMessageXiaoWu };
+export { web-chatPlugin, sendMessageOpenClaw Web Chat };
 export default plugin;

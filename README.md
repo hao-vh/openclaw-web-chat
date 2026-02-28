@@ -1,6 +1,6 @@
-# XiaoWu Plugin for OpenClaw
+# OpenClaw Web Chat Plugin for OpenClaw
 
-XiaoWu (小武) 是一个 OpenClaw Channel Plugin，将 Web 聊天室连接到 OpenClaw AI Agent。
+OpenClaw Web Chat (OpenClaw Web Chat) 是一个 OpenClaw Channel Plugin，将 Web 聊天室连接到 OpenClaw AI Agent。
 
 ## 特性
 
@@ -16,11 +16,11 @@ XiaoWu (小武) 是一个 OpenClaw Channel Plugin，将 Web 聊天室连接到 O
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-repo/xiaowu-plugin.git
-cd xiaowu-plugin
+git clone https://github.com/your-repo/web-chat-plugin.git
+cd web-chat-plugin
 
 # 一键安装
-bash install-xiaowu.sh
+bash install-web-chat.sh
 ```
 
 ### 2. 启动测试服务器
@@ -42,7 +42,7 @@ node example-server.js
 
 ```
 ┌─────────────┐      WebSocket       ┌─────────────┐
-│  Web 聊天室  │ ◄──────────────────► │  XiaoWu     │
+│  Web 聊天室  │ ◄──────────────────► │  OpenClaw Web Chat     │
 │  (Port 3456)│                      │  Plugin     │
 └─────────────┘                      └──────┬──────┘
                                             │

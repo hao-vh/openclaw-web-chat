@@ -1,13 +1,13 @@
 /**
- * XiaoWu WebSocket/HTTP 客户端 (连接复用版 + Ruyuan-IM 支持)
+ * OpenClaw Web Chat WebSocket/HTTP 客户端 (连接复用版 + Ruyuan-IM 支持)
  */
 
 import WebSocket from "ws";
 import type {
-  XiaoWuConfig,
-  XiaoWuMessageEvent,
-  XiaoWuSendMessageRequest,
-  XiaoWuSendMessageResponse,
+  OpenClaw Web ChatConfig,
+  OpenClaw Web ChatMessageEvent,
+  OpenClaw Web ChatSendMessageRequest,
+  OpenClaw Web ChatSendMessageResponse,
   RuyuanConnectionState,
   RuyuanJsonCommand,
 } from "./types.js";
@@ -27,17 +27,17 @@ import {
  */
 interface WSConnectionState {
   ws: WebSocket;
-  config: XiaoWuConfig;
+  config: OpenClaw Web ChatConfig;
   isReady: boolean;
   messageQueue: Array<{
-    message: XiaoWuSendMessageRequest;
-    resolve: (result: XiaoWuSendMessageResponse) => void;
+    message: OpenClaw Web ChatSendMessageRequest;
+    resolve: (result: OpenClaw Web ChatSendMessageResponse) => void;
   }>;
   pendingRequests: Map<string, {
-    resolve: (result: XiaoWuSendMessageResponse) => void;
+    resolve: (result: OpenClaw Web ChatSendMessageResponse) => void;
     timeout: NodeJS.Timeout;
   }>;
-  handlers: Set<(event: XiaoWuMessageEvent) => void>;
+  handlers: Set<(event: OpenClaw Web ChatMessageEvent) => void>;
   reconnectTimer?: NodeJS.Timeout;
   isClosed: boolean;
   // Ruyuan-IM 专用状态
@@ -50,7 +50,7 @@ const connectionPool = new Map<string, WSConnectionState>();
 /**
  * 判断是否为 Ruyuan-IM 适配模式
  */
-function isRuyuanAdapter(config: XiaoWuConfig): boolean {
+function isRuyuanAdapter(config: OpenClaw Web ChatConfig): boolean {
   return config.adapter === "ruyuan" || !!config.ruyuan?.userId;
 }
 
@@ -60,8 +60,8 @@ function isRuyuanAdapter(config: XiaoWuConfig): boolean {
  */
 export function getOrCreateWSConnection(
   accountId: string,
-  config: XiaoWuConfig,
-  messageHandler?: (event: XiaoWuMessageEvent) => void
+  config: OpenClaw Web ChatConfig,
+  messageHandler?: (event: OpenClaw Web ChatMessageEvent) => void
 ): WSConnectionState {
   const existing = connectionPool.get(accountId);
   
@@ -83,8 +83,8 @@ export function getOrCreateWSConnection(
  */
 function createWSConnection(
   accountId: string,
-  config: XiaoWuConfig,
-  messageHandler?: (event: XiaoWuMessageEvent) => void
+  config: OpenClaw Web ChatConfig,
+  messageHandler?: (event: OpenClaw Web ChatMessageEvent) => void
 ): WSConnectionState {
   const { wsUrl, apiToken, autoReconnect = true } = config;
   const isRuyuan = isRuyuanAdapter(config);
@@ -118,20 +118,20 @@ function createWSConnection(
     state.ws = ws;
 
     ws.on("open", () => {
-      console.log(`[XiaoWu ${accountId}] WebSocket connected`);
+      console.log(`[OpenClaw Web Chat ${accountId}] WebSocket connected`);
       
       // Ruyuan-IM 模式：连接成功后发送上线请求
       if (isRuyuan && state.ruyuanState) {
         sendRuyuanOnline(state);
       } else {
-        // XiaoWu 原生模式：直接就绪
+        // OpenClaw Web Chat 原生模式：直接就绪
         state.isReady = true;
         processMessageQueue(state);
       }
     });
 
     ws.on("message", (rawData) => {
-      console.log('[XiaoWu Debug] Raw message received:', rawData.toString().slice(0, 100));
+      console.log('[OpenClaw Web Chat Debug] Raw message received:', rawData.toString().slice(0, 100));
       try {
         const data = JSON.parse(rawData.toString());
         
@@ -139,15 +139,15 @@ function createWSConnection(
         if (isRuyuan) {
           handleRuyuanMessage(data, state, accountId);
         } else {
-          handleXiaoWuMessage(data, state);
+          handleOpenClaw Web ChatMessage(data, state);
         }
       } catch (err) {
-        console.error(`[XiaoWu ${accountId}] Failed to parse message:`, err);
+        console.error(`[OpenClaw Web Chat ${accountId}] Failed to parse message:`, err);
       }
     });
 
     ws.on("close", () => {
-      console.log(`[XiaoWu ${accountId}] WebSocket disconnected`);
+      console.log(`[OpenClaw Web Chat ${accountId}] WebSocket disconnected`);
       state.isReady = false;
 
       // 清理 Ruyuan-IM 心跳定时器
@@ -157,13 +157,13 @@ function createWSConnection(
       }
 
       if (autoReconnect && !state.isClosed) {
-        console.log(`[XiaoWu ${accountId}] Reconnecting in 5s...`);
+        console.log(`[OpenClaw Web Chat ${accountId}] Reconnecting in 5s...`);
         state.reconnectTimer = setTimeout(connect, 5000);
       }
     });
 
     ws.on("error", (err) => {
-      console.error(`[XiaoWu ${accountId}] WebSocket error:`, err);
+      console.error(`[OpenClaw Web Chat ${accountId}] WebSocket error:`, err);
     });
   };
 
@@ -183,14 +183,14 @@ function handleRuyuanMessage(
   const cmd = data as RuyuanJsonCommand;
   const cmdType = getCommandTypeName(cmd.type);
   
-  console.log(`[XiaoWu ${accountId}] Ruyuan ${cmdType}:`, cmd.body);
+  console.log(`[OpenClaw Web Chat ${accountId}] Ruyuan ${cmdType}:`, cmd.body);
 
   switch (cmd.type) {
     case 3: // ONLINE - 上线响应
       if (state.ruyuanState) {
         state.ruyuanState.isOnline = true;
         state.isReady = true;
-        console.log(`[XiaoWu ${accountId}] Ruyuan online success`);
+        console.log(`[OpenClaw Web Chat ${accountId}] Ruyuan online success`);
         
         // 启动心跳
         startRuyuanHeartbeat(state, accountId);
@@ -206,13 +206,13 @@ function handleRuyuanMessage(
         try {
           handler(event);
         } catch (err) {
-          console.error(`[XiaoWu ${accountId}] Handler error:`, err);
+          console.error(`[OpenClaw Web Chat ${accountId}] Handler error:`, err);
         }
       });
       break;
 
     case 4: // OFFLINE - 被踢下线
-      console.log(`[XiaoWu ${accountId}] Received offline notification`);
+      console.log(`[OpenClaw Web Chat ${accountId}] Received offline notification`);
       if (state.ruyuanState) {
         state.ruyuanState.isOnline = false;
       }
@@ -224,16 +224,16 @@ function handleRuyuanMessage(
       break;
 
     default:
-      console.log(`[XiaoWu ${accountId}] Unhandled Ruyuan command: ${cmdType}`);
+      console.log(`[OpenClaw Web Chat ${accountId}] Unhandled Ruyuan command: ${cmdType}`);
   }
 }
 
 /**
- * 处理 XiaoWu 原生消息
+ * 处理 OpenClaw Web Chat 原生消息
  */
-function handleXiaoWuMessage(data: any, state: WSConnectionState): void {
-  console.log('[XiaoWu Debug] Received message:', JSON.stringify(data).slice(0, 200));
-  console.log('[XiaoWu Debug] Handlers count:', state.handlers.size);
+function handleOpenClaw Web ChatMessage(data: any, state: WSConnectionState): void {
+  console.log('[OpenClaw Web Chat Debug] Received message:', JSON.stringify(data).slice(0, 200));
+  console.log('[OpenClaw Web Chat Debug] Handlers count:', state.handlers.size);
   
   // 检查是否是发送请求的响应
   if (data.requestId && state.pendingRequests.has(data.requestId)) {
@@ -250,12 +250,12 @@ function handleXiaoWuMessage(data: any, state: WSConnectionState): void {
 
   // 普通消息事件，分发给所有处理器
   if (data.messageId) {
-    const event = data as XiaoWuMessageEvent;
+    const event = data as OpenClaw Web ChatMessageEvent;
     state.handlers.forEach((handler) => {
       try {
         handler(event);
       } catch (err) {
-        console.error(`[XiaoWu] Handler error:`, err);
+        console.error(`[OpenClaw Web Chat] Handler error:`, err);
       }
     });
   }
@@ -266,7 +266,7 @@ function handleXiaoWuMessage(data: any, state: WSConnectionState): void {
  */
 function sendRuyuanOnline(state: WSConnectionState): void {
   if (!state.ruyuanState?.token || !state.ruyuanState?.userId) {
-    console.error("[XiaoWu] Ruyuan config missing token or userId");
+    console.error("[OpenClaw Web Chat] Ruyuan config missing token or userId");
     return;
   }
 
@@ -277,7 +277,7 @@ function sendRuyuanOnline(state: WSConnectionState): void {
   );
 
   state.ws.send(JSON.stringify(onlineCmd));
-  console.log(`[XiaoWu] Sending Ruyuan ONLINE request`);
+  console.log(`[OpenClaw Web Chat] Sending Ruyuan ONLINE request`);
 }
 
 /**
@@ -295,11 +295,11 @@ function startRuyuanHeartbeat(state: WSConnectionState, accountId: string): void
         state.ruyuanState.clientType || 1
       );
       state.ws.send(JSON.stringify(heartbeatCmd));
-      console.log(`[XiaoWu ${accountId}] Ruyuan heartbeat sent`);
+      console.log(`[OpenClaw Web Chat ${accountId}] Ruyuan heartbeat sent`);
     }
   }, interval);
 
-  console.log(`[XiaoWu ${accountId}] Ruyuan heartbeat started (${interval}ms)`);
+  console.log(`[OpenClaw Web Chat ${accountId}] Ruyuan heartbeat started (${interval}ms)`);
 }
 
 /**
@@ -317,8 +317,8 @@ function processMessageQueue(state: WSConnectionState): void {
  */
 function sendInternal(
   state: WSConnectionState,
-  message: XiaoWuSendMessageRequest,
-  resolve: (result: XiaoWuSendMessageResponse) => void
+  message: OpenClaw Web ChatSendMessageRequest,
+  resolve: (result: OpenClaw Web ChatSendMessageResponse) => void
 ): void {
   // Ruyuan-IM 模式
   if (isRuyuanAdapter(state.config) && state.ruyuanState) {
@@ -337,7 +337,7 @@ function sendInternal(
     return;
   }
 
-  // XiaoWu 原生模式
+  // OpenClaw Web Chat 原生模式
   const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   
   const payload = {
@@ -363,15 +363,15 @@ function sendInternal(
  */
 export async function sendWithSharedConnection(
   accountId: string,
-  config: XiaoWuConfig,
-  message: XiaoWuSendMessageRequest
-): Promise<XiaoWuSendMessageResponse> {
+  config: OpenClaw Web ChatConfig,
+  message: OpenClaw Web ChatSendMessageRequest
+): Promise<OpenClaw Web ChatSendMessageResponse> {
   const state = getOrCreateWSConnection(accountId, config);
 
   return new Promise((resolve) => {
     if (!state.isReady) {
       // 连接未就绪，加入队列等待
-      console.log(`[XiaoWu ${accountId}] Connection not ready, queuing message`);
+      console.log(`[OpenClaw Web Chat ${accountId}] Connection not ready, queuing message`);
       state.messageQueue.push({ message, resolve });
     } else {
       sendInternal(state, message, resolve);
@@ -384,8 +384,8 @@ export async function sendWithSharedConnection(
  */
 export function registerMessageHandler(
   accountId: string,
-  config: XiaoWuConfig,
-  handler: (event: XiaoWuMessageEvent) => void
+  config: OpenClaw Web ChatConfig,
+  handler: (event: OpenClaw Web ChatMessageEvent) => void
 ): () => void {
   const state = getOrCreateWSConnection(accountId, config, handler);
   state.handlers.add(handler);
@@ -415,7 +415,7 @@ export function closeWSConnection(accountId: string): void {
     
     state.ws.close();
     connectionPool.delete(accountId);
-    console.log(`[XiaoWu ${accountId}] Connection closed`);
+    console.log(`[OpenClaw Web Chat ${accountId}] Connection closed`);
   }
 }
 
@@ -453,23 +453,23 @@ export function getConnectionStatus(accountId: string): {
 
 // ============ 以下保持向后兼容 ============
 
-export interface XiaoWuClient {
-  send: (message: XiaoWuSendMessageRequest) => Promise<XiaoWuSendMessageResponse>;
+export interface OpenClaw Web ChatClient {
+  send: (message: OpenClaw Web ChatSendMessageRequest) => Promise<OpenClaw Web ChatSendMessageResponse>;
   close: () => void;
 }
 
 /**
  * 创建 WebSocket 客户端（向后兼容）
  */
-export function createXiaoWuWSClient(
-  config: XiaoWuConfig,
+export function createOpenClaw Web ChatWSClient(
+  config: OpenClaw Web ChatConfig,
   handlers: {
-    onMessage: (event: XiaoWuMessageEvent) => void;
+    onMessage: (event: OpenClaw Web ChatMessageEvent) => void;
     onConnect?: () => void;
     onDisconnect?: () => void;
     onError?: (error: Error) => void;
   }
-): XiaoWuClient {
+): OpenClaw Web ChatClient {
   const accountId = config.wsUrl || "default";
   
   const state = getOrCreateWSConnection(accountId, config, handlers.onMessage);
@@ -486,9 +486,9 @@ export function createXiaoWuWSClient(
 /**
  * 创建 HTTP API 客户端
  */
-export function createXiaoWuHTTPClient(
-  config: XiaoWuConfig
-): XiaoWuClient {
+export function createOpenClaw Web ChatHTTPClient(
+  config: OpenClaw Web ChatConfig
+): OpenClaw Web ChatClient {
   const { apiUrl, apiToken } = config;
 
   return {
@@ -535,10 +535,10 @@ export function createXiaoWuHTTPClient(
 /**
  * HTTP 轮询获取消息
  */
-export async function* pollXiaoWuMessages(
-  config: XiaoWuConfig,
+export async function* pollOpenClaw Web ChatMessages(
+  config: OpenClaw Web ChatConfig,
   signal?: AbortSignal
-): AsyncGenerator<XiaoWuMessageEvent> {
+): AsyncGenerator<OpenClaw Web ChatMessageEvent> {
   const { apiUrl, apiToken, pollInterval = 3000 } = config;
   let lastMessageId: string | null = null;
 
@@ -557,12 +557,12 @@ export async function* pollXiaoWuMessages(
       const response = await fetch(url.toString(), { headers, signal });
       
       if (!response.ok) {
-        console.error(`[XiaoWu] Poll failed: ${response.status}`);
+        console.error(`[OpenClaw Web Chat] Poll failed: ${response.status}`);
         await sleep(pollInterval);
         continue;
       }
 
-      const messages = (await response.json()) as XiaoWuMessageEvent[];
+      const messages = (await response.json()) as OpenClaw Web ChatMessageEvent[];
       
       for (const message of messages) {
         yield message;
@@ -570,7 +570,7 @@ export async function* pollXiaoWuMessages(
       }
     } catch (err) {
       if (signal?.aborted) break;
-      console.error("[XiaoWu] Poll error:", err);
+      console.error("[OpenClaw Web Chat] Poll error:", err);
     }
 
     await sleep(pollInterval);

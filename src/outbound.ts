@@ -1,7 +1,7 @@
 import type { ChannelOutboundAdapter } from "openclaw/plugin-sdk";
-import { sendMessageXiaoWu } from "./send.js";
+import { sendMessageOpenClaw Web Chat } from "./send.js";
 
-export const xiaowuOutbound: ChannelOutboundAdapter = {
+export const web-chatOutbound: ChannelOutboundAdapter = {
   deliveryMode: "direct",
   chunker: (text, limit) => {
     // 简单分片：按段落分割
@@ -22,17 +22,17 @@ export const xiaowuOutbound: ChannelOutboundAdapter = {
   chunkerMode: "text",
   textChunkLimit: 2000,
   sendText: async ({ cfg, to, text }) => {
-    console.log("[XiaoWu Outbound] Sending text to " + to + ": " + text.slice(0, 100));
-    const result = await sendMessageXiaoWu({ cfg, to, text });
-    console.log("[XiaoWu Outbound] Result: " + JSON.stringify(result));
-    return { channel: "xiaowu", ...result };
+    console.log("[OpenClaw Web Chat Outbound] Sending text to " + to + ": " + text.slice(0, 100));
+    const result = await sendMessageOpenClaw Web Chat({ cfg, to, text });
+    console.log("[OpenClaw Web Chat Outbound] Result: " + JSON.stringify(result));
+    return { channel: "web-chat", ...result };
   },
   sendMedia: async ({ cfg, to, text }) => {
     // 暂时只支持文本
     if (text?.trim()) {
-      const result = await sendMessageXiaoWu({ cfg, to, text });
-      return { channel: "xiaowu", ...result };
+      const result = await sendMessageOpenClaw Web Chat({ cfg, to, text });
+      return { channel: "web-chat", ...result };
     }
-    return { channel: "xiaowu", success: false, error: "No content to send" };
+    return { channel: "web-chat", success: false, error: "No content to send" };
   },
 };

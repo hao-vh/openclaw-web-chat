@@ -1,13 +1,13 @@
 /**
- * XiaoWu 消息发送（连接复用版）
+ * OpenClaw Web Chat 消息发送（连接复用版）
  */
 
 import type { ClawdbotConfig } from "openclaw/plugin-sdk";
-import { resolveXiaoWuAccount } from "./accounts.js";
-import { sendWithSharedConnection, createXiaoWuHTTPClient } from "./client.js";
-import type { XiaoWuSendMessageRequest } from "./types.js";
+import { resolveOpenClaw Web ChatAccount } from "./accounts.js";
+import { sendWithSharedConnection, createOpenClaw Web ChatHTTPClient } from "./client.js";
+import type { OpenClaw Web ChatSendMessageRequest } from "./types.js";
 
-export interface SendMessageXiaoWuOpts {
+export interface SendMessageOpenClaw Web ChatOpts {
   cfg: ClawdbotConfig;
   accountId?: string;
   to: string;           // chat:xxx 或 user:xxx
@@ -17,26 +17,26 @@ export interface SendMessageXiaoWuOpts {
 }
 
 /**
- * 发送消息到 XiaoWu
+ * 发送消息到 OpenClaw Web Chat
  * 
  * 关键改进：
  * - WebSocket 模式下复用 monitor 的连接，不再每次都新建
  * - 如果连接未就绪，消息会自动排队等待
  */
-export async function sendMessageXiaoWu(
-  opts: SendMessageXiaoWuOpts
+export async function sendMessageOpenClaw Web Chat(
+  opts: SendMessageOpenClaw Web ChatOpts
 ): Promise<{ messageId?: string; error?: string }> {
   const { cfg, accountId, to, text, replyTo } = opts;
 
-  const account = resolveXiaoWuAccount({ cfg, accountId });
+  const account = resolveOpenClaw Web ChatAccount({ cfg, accountId });
   if (!account.enabled || !account.configured) {
-    return { error: `XiaoWu account "${accountId || "default"}" not available` };
+    return { error: `OpenClaw Web Chat account "${accountId || "default"}" not available` };
   }
 
   // 解析目标
   const chatId = to.replace(/^(chat|user):/, "");
 
-  const message: XiaoWuSendMessageRequest = {
+  const message: OpenClaw Web ChatSendMessageRequest = {
     chatId,
     content: text,
     messageType: "text",
@@ -56,7 +56,7 @@ export async function sendMessageXiaoWu(
       );
     } else {
       // HTTP 模式：每次新建请求（HTTP 是无状态的）
-      const client = createXiaoWuHTTPClient(account.config);
+      const client = createOpenClaw Web ChatHTTPClient(account.config);
       result = await client.send(message);
       client.close();
     }
@@ -78,7 +78,7 @@ export async function sendMessageXiaoWu(
  * 
  * 使用共享连接可以大大提高批量发送的效率
  */
-export async function sendMessageBatchXiaoWu(
+export async function sendMessageBatchOpenClaw Web Chat(
   opts: {
     cfg: ClawdbotConfig;
     accountId?: string;
@@ -91,19 +91,19 @@ export async function sendMessageBatchXiaoWu(
 ): Promise<Array<{ to: string; success: boolean; messageId?: string; error?: string }>> {
   const { cfg, accountId, messages } = opts;
 
-  const account = resolveXiaoWuAccount({ cfg, accountId });
+  const account = resolveOpenClaw Web ChatAccount({ cfg, accountId });
   if (!account.enabled || !account.configured) {
     return messages.map((msg) => ({
       to: msg.to,
       success: false,
-      error: `XiaoWu account "${accountId || "default"}" not available`,
+      error: `OpenClaw Web Chat account "${accountId || "default"}" not available`,
     }));
   }
 
   // 批量发送可以复用同一个连接
   const results = await Promise.all(
     messages.map(async (msg) => {
-      const result = await sendMessageXiaoWu({
+      const result = await sendMessageOpenClaw Web Chat({
         cfg,
         accountId,
         to: msg.to,

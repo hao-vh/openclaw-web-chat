@@ -1,10 +1,10 @@
 /**
- * XiaoWu Test Server - 快速测试用的 Web 聊天室
+ * OpenClaw Web Chat Test Server - 快速测试用的 Web 聊天室
  * 
  * 使用方法:
  * 1. node test-server.js
  * 2. 打开 http://localhost:3000
- * 3. 配置 xiaowu plugin 连接到 ws://localhost:3000/ws
+ * 3. 配置 web-chat plugin 连接到 ws://localhost:3000/ws
  */
 
 import { WebSocketServer } from 'ws';
@@ -89,7 +89,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // API: XiaoWu Plugin 发送回复到 Web 聊天室
+  // API: OpenClaw Web Chat Plugin 发送回复到 Web 聊天室
   if (req.url === '/api/send' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -111,12 +111,12 @@ const server = http.createServer((req, res) => {
         messages.push(message);
         broadcast(message);
         
-        console.log('[XiaoWu] AI回复已广播:', message.content.slice(0, 50));
+        console.log('[OpenClaw Web Chat] AI回复已广播:', message.content.slice(0, 50));
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, messageId: message.messageId }));
       } catch (err) {
-        console.error('[XiaoWu] 处理AI回复失败:', err);
+        console.error('[OpenClaw Web Chat] 处理AI回复失败:', err);
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
       }
@@ -124,7 +124,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // API: XiaoWu Plugin 发送回复到 Web 聊天室
+  // API: OpenClaw Web Chat Plugin 发送回复到 Web 聊天室
   if (req.url === '/api/send' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -146,12 +146,12 @@ const server = http.createServer((req, res) => {
         messages.push(message);
         broadcast(message);
         
-        console.log('[XiaoWu] AI回复已广播:', message.content.slice(0, 50));
+        console.log('[OpenClaw Web Chat] AI回复已广播:', message.content.slice(0, 50));
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, messageId: message.messageId }));
       } catch (err) {
-        console.error('[XiaoWu] 处理AI回复失败:', err);
+        console.error('[OpenClaw Web Chat] 处理AI回复失败:', err);
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
       }
@@ -220,7 +220,7 @@ wss.on('connection', (ws, req) => {
 function handleWebSocketMessage(ws, msg, clientInfo) {
   console.log('[TestServer] 收到消息:', msg);
 
-  // 处理 XiaoWu Plugin 协议
+  // 处理 OpenClaw Web Chat Plugin 协议
   if (msg.type === 'send_message') {
     // 发送消息请求
     const message = {
@@ -251,7 +251,7 @@ function handleWebSocketMessage(ws, msg, clientInfo) {
     return;
   }
 
-  // 处理原生 XiaoWu 消息格式（不带 type 包装）
+  // 处理原生 OpenClaw Web Chat 消息格式（不带 type 包装）
   if (msg.messageId && msg.content) {
     const message = {
       messageId: msg.messageId,
@@ -331,7 +331,7 @@ function getHtmlPage() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XiaoWu Test Chat</title>
+  <title>OpenClaw Web Chat Test Chat</title>
   <style>
     :root {
       --primary-blue: #3b82f6;
@@ -772,7 +772,7 @@ function getHtmlPage() {
       const content = inputEl.value.trim();
       if (!content) return;
       
-      // 使用 XiaoWu Plugin 格式发送
+      // 使用 OpenClaw Web Chat Plugin 格式发送
       const msg = {
         messageId: 'msg_' + Date.now(),
         chatId: currentRoom,
@@ -792,7 +792,7 @@ function getHtmlPage() {
     function sendTestMessage() {
       const tests = [
         '这是一条测试消息',
-        'Hello from XiaoWu!',
+        'Hello from OpenClaw Web Chat!',
         '测试 emoji: 🚀 💬 ✅',
         '当前时间: ' + new Date().toLocaleString(),
       ];
@@ -846,7 +846,7 @@ function getHtmlPage() {
 // 启动服务器
 server.listen(PORT, () => {
   console.log('='.repeat(60));
-  console.log('🚀 XiaoWu Test Server 已启动');
+  console.log('🚀 OpenClaw Web Chat Test Server 已启动');
   console.log('='.repeat(60));
   console.log(`📡 WebSocket: ws://localhost:${PORT}${WS_PATH}`);
   console.log(`🌐 Web 界面: http://localhost:${PORT}`);
@@ -854,7 +854,7 @@ server.listen(PORT, () => {
   console.log('='.repeat(60));
   console.log('使用说明:');
   console.log('1. 打开浏览器访问 http://localhost:' + PORT);
-  console.log('2. 在 openclaw.json 中配置 xiaowu channel:');
+  console.log('2. 在 openclaw.json 中配置 web-chat channel:');
   console.log(`   wsUrl: "ws://localhost:${PORT}${WS_PATH}"`);
   console.log('3. 重启 OpenClaw Gateway');
   console.log('='.repeat(60));

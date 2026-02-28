@@ -1,6 +1,6 @@
-# XiaoWu Plugin 安装使用教程
+# OpenClaw Web Chat Plugin 安装使用教程
 
-XiaoWu 是一个 OpenClaw Channel Plugin，让 AI Agent 能够通过 WebSocket 连接到自定义 Web 聊天室，实现双向通信。
+OpenClaw Web Chat 是一个 OpenClaw Channel Plugin，让 AI Agent 能够通过 WebSocket 连接到自定义 Web 聊天室，实现双向通信。
 
 ## 功能特性
 
@@ -19,11 +19,11 @@ XiaoWu 是一个 OpenClaw Channel Plugin，让 AI Agent 能够通过 WebSocket �
 
 ```bash
 # 下载插件包并解压
-git clone https://github.com/your-repo/xiaowu-plugin.git
-cd xiaowu-plugin
+git clone https://github.com/your-repo/web-chat-plugin.git
+cd web-chat-plugin
 
 # 运行安装脚本
-bash install-xiaowu.sh
+bash install-web-chat.sh
 ```
 
 ### 方法二：手动安装
@@ -32,16 +32,16 @@ bash install-xiaowu.sh
 
 ```bash
 # 创建插件目录
-mkdir -p ~/.openclaw/extensions/xiaowu
+mkdir -p ~/.openclaw/extensions/web-chat
 
 # 复制插件文件（根据实际路径调整）
-cp -r /path/to/xiaowu-plugin/* ~/.openclaw/extensions/xiaowu/
+cp -r /path/to/web-chat-plugin/* ~/.openclaw/extensions/web-chat/
 ```
 
 #### 2. 安装依赖
 
 ```bash
-cd ~/.openclaw/extensions/xiaowu
+cd ~/.openclaw/extensions/web-chat
 npm install
 ```
 
@@ -53,20 +53,20 @@ npm install
 {
   "plugins": {
     "entries": {
-      "xiaowu": {
+      "web-chat": {
         "enabled": true
       }
     },
     "installs": {
-      "xiaowu": {
+      "web-chat": {
         "source": "local",
-        "sourcePath": "/home/your-username/.openclaw/extensions/xiaowu",
+        "sourcePath": "/home/your-username/.openclaw/extensions/web-chat",
         "version": "1.3.0"
       }
     }
   },
   "channels": {
-    "xiaowu": {
+    "web-chat": {
       "enabled": true,
       "wsUrl": "ws://localhost:3456/ws",
       "apiUrl": "http://localhost:3456",
@@ -92,14 +92,14 @@ openclaw gateway restart
 ### 方式一：使用示例服务器
 
 ```bash
-cd ~/.openclaw/extensions/xiaowu
+cd ~/.openclaw/extensions/web-chat
 node example-server.js
 ```
 
 ### 方式二：使用完整测试服务器
 
 ```bash
-cd ~/.openclaw/extensions/xiaowu
+cd ~/.openclaw/extensions/web-chat
 node test-server.js
 ```
 
@@ -140,7 +140,7 @@ AI 的回复会显示在聊天界面中，与普通消息区分显示。
 ```json
 {
   "channels": {
-    "xiaowu": {
+    "web-chat": {
       "enabled": true,              // 启用/禁用
       "wsUrl": "ws://localhost:3456/ws",  // WebSocket 地址
       "apiUrl": "http://localhost:3456",  // HTTP API 地址
@@ -160,7 +160,7 @@ AI 的回复会显示在聊天界面中，与普通消息区分显示。
 ```json
 {
   "channels": {
-    "xiaowu": {
+    "web-chat": {
       "enabled": true,
       "accounts": {
         "account1": {
@@ -188,7 +188,7 @@ AI 的回复会显示在聊天界面中，与普通消息区分显示。
 ```json
 {
   "channels": {
-    "xiaowu": {
+    "web-chat": {
       "enabled": true,
       "connectionMode": "http",
       "apiUrl": "http://localhost:3456",
@@ -216,17 +216,17 @@ AI 的回复会显示在聊天界面中，与普通消息区分显示。
 **症状**：消息发送成功，但没有收到 AI 回复
 
 **解决**：
-1. 检查 Gateway 日志：`tail -f /tmp/openclaw/openclaw-*.log | grep xiaowu`
+1. 检查 Gateway 日志：`tail -f /tmp/openclaw/openclaw-*.log | grep web-chat`
 2. 确认 Agent 配置正确
 3. 检查是否有路由配置错误
 
 ### 问题3：插件加载失败
 
-**症状**：Gateway 启动时报错 `plugin xiaowu not found`
+**症状**：Gateway 启动时报错 `plugin web-chat not found`
 
 **解决**：
 1. 检查插件路径是否正确
-2. 确认 `plugins.installs.xiaowu.sourcePath` 指向正确的目录
+2. 确认 `plugins.installs.web-chat.sourcePath` 指向正确的目录
 3. 运行 `openclaw doctor` 检查配置
 
 ---
@@ -287,7 +287,7 @@ ws.onmessage = (event) => {
 ### 项目结构
 
 ```
-xiaowu/
+web-chat/
 ├── index.ts              # 插件入口
 ├── src/
 │   ├── channel.ts        # Channel 配置
@@ -305,7 +305,7 @@ xiaowu/
 
 ### 自定义开发
 
-你可以基于 XiaoWu 插件开发自己的聊天集成：
+你可以基于 OpenClaw Web Chat 插件开发自己的聊天集成：
 
 1. 修改 `client.ts` 适配你的消息协议
 2. 修改 `types.ts` 定义你的消息格式

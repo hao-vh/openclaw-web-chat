@@ -1,11 +1,11 @@
 /**
- * XiaoWu 目标解析
+ * OpenClaw Web Chat 目标解析
  */
 
 /**
  * 标准化目标格式
  */
-export function normalizeXiaoWuTarget(target: string): string {
+export function normalizeOpenClaw Web ChatTarget(target: string): string {
   // 如果已经是标准格式，直接返回
   if (target.startsWith("user:") || target.startsWith("chat:")) {
     return target;
@@ -23,7 +23,7 @@ export function normalizeXiaoWuTarget(target: string): string {
 /**
  * 格式化目标为显示名称
  */
-export function formatXiaoWuTarget(target: string): string {
+export function formatOpenClaw Web ChatTarget(target: string): string {
   if (target.startsWith("user:")) {
     return target.slice(5);
   }
@@ -34,10 +34,10 @@ export function formatXiaoWuTarget(target: string): string {
 }
 
 /**
- * 判断是否是有效的 XiaoWu ID
+ * 判断是否是有效的 OpenClaw Web Chat ID
  */
-export function looksLikeXiaoWuId(target: string): boolean {
-  // XiaoWu ID 可以是任何非空字符串
+export function looksLikeOpenClaw Web ChatId(target: string): boolean {
+  // OpenClaw Web Chat ID 可以是任何非空字符串
   return typeof target === "string" && target.length > 0;
 }
 
