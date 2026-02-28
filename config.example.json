@@ -1,0 +1,19 @@
+{
+  "_comment": "XiaoWu Channel 配置示例",
+  
+  "channels": {
+    "xiaowu": {
+      "enabled": true,
+      "wsUrl": "ws://localhost:8080/ws",
+      "apiUrl": "http://localhost:8080",
+      "apiToken": "your-secret-token-here",
+      "connectionMode": "websocket",
+      "pollInterval": 3000,
+      "autoReconnect": true,
+      "dmPolicy": "open",
+      "groupPolicy": "open",
+      "allowFrom": [],
+      "groupAllowFrom": []
+    }
+  }
+}

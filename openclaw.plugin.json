@@ -1,0 +1,9 @@
+{
+  "id": "xiaowu",
+  "channels": ["xiaowu"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
