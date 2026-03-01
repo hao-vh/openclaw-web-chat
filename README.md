@@ -26,7 +26,7 @@ bash install-web-chat.sh
 ### 2. 启动测试服务器
 
 ```bash
-node example-server.js
+node test-server.js
 ```
 
 ### 3. 打开浏览器
