@@ -1,30 +1,30 @@
 /**
- * OpenClaw Web Chat Channel - 借鉴 Feishu Plugin
+ * OpenClawWebChat Channel - 借鉴 Feishu Plugin
  * 
  * 完整的 ChannelPlugin 配置
  */
 
 import type { ChannelPlugin, ClawdbotConfig } from "openclaw/plugin-sdk";
-import type { ResolvedOpenClaw Web ChatAccount, OpenClaw Web ChatConfig } from "./types.js";
+import type { ResolvedOpenClawWebChatAccount, OpenClawWebChatConfig } from "./types.js";
 import {
-  resolveOpenClaw Web ChatAccount,
-  listOpenClaw Web ChatAccountIds,
-  resolveDefaultOpenClaw Web ChatAccountId,
+  resolveOpenClawWebChatAccount,
+  listOpenClawWebChatAccountIds,
+  resolveDefaultOpenClawWebChatAccountId,
 } from "./accounts.js";
-import { web-chatOutbound } from "./outbound.js";
-import { sendMessageOpenClaw Web Chat } from "./send.js";
+import { webChatOutbound } from "./outbound.js";
+import { sendMessageOpenClawWebChat } from "./send.js";
 import {
-  normalizeOpenClaw Web ChatTarget,
-  looksLikeOpenClaw Web ChatId,
-  formatOpenClaw Web ChatTarget,
+  normalizeOpenClawWebChatTarget,
+  looksLikeOpenClawWebChatId,
+  formatOpenClawWebChatTarget,
 } from "./targets.js";
-import { monitorOpenClaw Web ChatProvider } from "./monitor.js";
+import { monitorOpenClawWebChatProvider } from "./monitor.js";
 
 // Meta 信息
 const meta = {
   id: "web-chat",
-  label: "OpenClaw Web Chat",
-  selectionLabel: "OpenClaw Web Chat Web Chat (OpenClaw Web Chat聊天室)",
+  label: "OpenClawWebChat",
+  selectionLabel: "OpenClawWebChat Web Chat (OpenClawWebChat聊天室)",
   docsPath: "/channels/web-chat",
   docsLabel: "web-chat",
   blurb: "Connect your custom Web Chat room to OpenClaw.",
@@ -33,9 +33,9 @@ const meta = {
 };
 
 /**
- * OpenClaw Web Chat Channel Plugin 配置
+ * OpenClawWebChat Channel Plugin 配置
  */
-export const web-chatPlugin: ChannelPlugin<ResolvedOpenClaw Web ChatAccount> = {
+export const webChatPlugin: ChannelPlugin<ResolvedOpenClawWebChatAccount> = {
   id: "web-chat",
   meta,
   
@@ -44,7 +44,7 @@ export const web-chatPlugin: ChannelPlugin<ResolvedOpenClaw Web ChatAccount> = {
     idLabel: "web-chatUserId",
     normalizeAllowEntry: (entry) => entry.replace(/^(web-chat|user):/i, ""),
     notifyApproval: async ({ cfg, id }) => {
-      await sendMessageOpenClaw Web Chat({
+      await sendMessageOpenClawWebChat({
         cfg,
         to: `user:${id}`,
         text: "✅ 你已成功连接到 OpenClaw AI 助手！",
@@ -66,8 +66,8 @@ export const web-chatPlugin: ChannelPlugin<ResolvedOpenClaw Web ChatAccount> = {
   // Agent 提示
   agentPrompt: {
     messageToolHints: () => [
-      "- OpenClaw Web Chat targeting: use `chat:roomId` for chat rooms, `user:userId` for direct messages.",
-      "- OpenClaw Web Chat is a custom Web Chat integration.",
+      "- OpenClawWebChat targeting: use `chat:roomId` for chat rooms, `user:userId` for direct messages.",
+      "- OpenClawWebChat is a custom Web Chat integration.",
     ],
   },
   
@@ -137,9 +137,9 @@ export const web-chatPlugin: ChannelPlugin<ResolvedOpenClaw Web ChatAccount> = {
   
   // 账号管理
   config: {
-    listAccountIds: (cfg) => listOpenClaw Web ChatAccountIds(cfg),
-    resolveAccount: (cfg, accountId) => resolveOpenClaw Web ChatAccount({ cfg, accountId }),
-    defaultAccountId: (cfg) => resolveDefaultOpenClaw Web ChatAccountId(cfg),
+    listAccountIds: (cfg) => listOpenClawWebChatAccountIds(cfg),
+    resolveAccount: (cfg, accountId) => resolveOpenClawWebChatAccount({ cfg, accountId }),
+    defaultAccountId: (cfg) => resolveDefaultOpenClawWebChatAccountId(cfg),
   },
   
   // 目录服务
@@ -150,20 +150,20 @@ export const web-chatPlugin: ChannelPlugin<ResolvedOpenClaw Web ChatAccount> = {
   
   // 目标解析
   targets: {
-    normalizeTarget: normalizeOpenClaw Web ChatTarget,
-    looksLikeTargetId: looksLikeOpenClaw Web ChatId,
-    formatTarget: formatOpenClaw Web ChatTarget,
+    normalizeTarget: normalizeOpenClawWebChatTarget,
+    looksLikeTargetId: looksLikeOpenClawWebChatId,
+    formatTarget: formatOpenClawWebChatTarget,
   },
   
   // 网关启动 - 关键：正确启动 monitor
   gateway: {
     startAccount: async (ctx) => {
-      console.log("[OpenClaw Web Chat] Starting provider via gateway.startAccount...");
+      console.log("[OpenClawWebChat] Starting provider via gateway.startAccount...");
       ctx.setStatus({ accountId: ctx.accountId, port: null });
       ctx.log?.info(`starting web-chat provider (mode: websocket)`);
       
       // 调用 monitor 启动消息监听
-      return monitorOpenClaw Web ChatProvider({
+      return monitorOpenClawWebChatProvider({
         config: ctx.cfg,
         runtime: ctx.runtime,
         abortSignal: ctx.abortSignal,
@@ -174,9 +174,9 @@ export const web-chatPlugin: ChannelPlugin<ResolvedOpenClaw Web ChatAccount> = {
   
   // 发送消息
   send: {
-    message: sendMessageOpenClaw Web Chat,
+    message: sendMessageOpenClawWebChat,
   },
   
   // 出站适配器 - 关键：用于 Agent 回复
-  outbound: web-chatOutbound,
+  outbound: webChatOutbound,
 };

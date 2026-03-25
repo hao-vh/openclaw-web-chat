@@ -1,12 +1,12 @@
 /**
  * Ruyuan-IM 协议适配器
  * 
- * 将 OpenClaw Web Chat 协议与 Ruyuan-IM 协议相互转换
+ * 将 OpenClawWebChat 协议与 Ruyuan-IM 协议相互转换
  */
 
 import type {
-  OpenClaw Web ChatMessageEvent,
-  OpenClaw Web ChatSendMessageRequest,
+  OpenClawWebChatMessageEvent,
+  OpenClawWebChatSendMessageRequest,
   RuyuanJsonCommand,
   RuyuanMessageSendRequest,
   RuyuanMessagePush,
@@ -20,14 +20,14 @@ import type {
 // ==================== 协议转换函数 ====================
 
 /**
- * 将 Ruyuan-IM 消息推送转换为 OpenClaw Web Chat 消息事件
+ * 将 Ruyuan-IM 消息推送转换为 OpenClawWebChat 消息事件
  * 
- * Ruyuan-IM (type: 6) -> OpenClaw Web ChatMessageEvent
+ * Ruyuan-IM (type: 6) -> OpenClawWebChatMessageEvent
  */
 export function convertFromRuyuanPush(
   ruyuanMsg: RuyuanJsonCommand,
   senderNameResolver?: (userId: number) => string
-): OpenClaw Web ChatMessageEvent {
+): OpenClawWebChatMessageEvent {
   const body = ruyuanMsg.body as RuyuanMessagePush;
   
   // 解析发送者名称（如果提供了解析器）
@@ -50,18 +50,18 @@ export function convertFromRuyuanPush(
 }
 
 /**
- * 将 OpenClaw Web Chat 发送请求转换为 Ruyuan-IM 发送消息格式
+ * 将 OpenClawWebChat 发送请求转换为 Ruyuan-IM 发送消息格式
  * 
- * OpenClaw Web ChatSendMessageRequest -> Ruyuan-IM (type: 5)
+ * OpenClawWebChatSendMessageRequest -> Ruyuan-IM (type: 5)
  */
 export function convertToRuyuanSend(
-  web-chatMsg: OpenClaw Web ChatSendMessageRequest,
+  webChatMsg: OpenClawWebChatSendMessageRequest,
   userId: number,
   clientType: number,
   sequence: number
 ): RuyuanJsonCommand {
-  const chatId = parseInt(web-chatMsg.chatId, 10);
-  const isDirect = !web-chatMsg.chatId.startsWith("group:");
+  const chatId = parseInt(webChatMsg.chatId, 10);
+  const isDirect = !webChatMsg.chatId.startsWith("group:");
   
   const body: RuyuanMessageSendRequest = {
     messageId: generateMessageId(),
@@ -69,8 +69,8 @@ export function convertToRuyuanSend(
     fromId: userId,
     toId: chatId,
     chatId: chatId,
-    messageType: web-chatMsg.messageType === "text" ? 1 : 1, // 暂时只支持文本
-    content: web-chatMsg.content,
+    messageType: webChatMsg.messageType === "text" ? 1 : 1, // 暂时只支持文本
+    content: webChatMsg.content,
     sequence,
     timestamp: Math.floor(Date.now() / 1000), // 秒级时间戳
   };
@@ -227,11 +227,11 @@ export function isRuyuanMessage(data: any): boolean {
 }
 
 /**
- * 判断消息是否为 OpenClaw Web Chat 格式
+ * 判断消息是否为 OpenClawWebChat 格式
  * 
  * 特征：包含 messageId, chatId, senderId, content 字段
  */
-export function isOpenClaw Web ChatMessage(data: any): boolean {
+export function isOpenClawWebChatMessage(data: any): boolean {
   return (
     typeof data === "object" &&
     data !== null &&

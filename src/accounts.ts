@@ -1,25 +1,25 @@
 /**
- * OpenClaw Web Chat 账号管理
+ * OpenClawWebChat 账号管理
  */
 
 import type { ClawdbotConfig } from "openclaw/plugin-sdk";
-import type { ResolvedOpenClaw Web ChatAccount, OpenClaw Web ChatConfig } from "./types.js";
+import type { ResolvedOpenClawWebChatAccount, OpenClawWebChatConfig } from "./types.js";
 
 const DEFAULT_ACCOUNT_ID = "default";
 
 /**
- * 解析 OpenClaw Web Chat 账号配置
+ * 解析 OpenClawWebChat 账号配置
  */
-export function resolveOpenClaw Web ChatAccount({
+export function resolveOpenClawWebChatAccount({
   cfg,
   accountId = DEFAULT_ACCOUNT_ID,
 }: {
   cfg: ClawdbotConfig;
   accountId?: string;
-}): ResolvedOpenClaw Web ChatAccount {
-  const channelConfig = cfg.channels?.web-chat as OpenClaw Web ChatConfig | undefined;
+}): ResolvedOpenClawWebChatAccount {
+  const channelConfig = cfg.channels?.["web-chat"] as OpenClawWebChatConfig | undefined;
   const accounts = channelConfig?.accounts as
-    | Record<string, OpenClaw Web ChatConfig>
+    | Record<string, OpenClawWebChatConfig>
     | undefined;
 
   // 获取指定账号或默认配置
@@ -59,10 +59,10 @@ export function resolveOpenClaw Web ChatAccount({
 /**
  * 列出所有账号ID
  */
-export function listOpenClaw Web ChatAccountIds(cfg: ClawdbotConfig): string[] {
-  const channelConfig = cfg.channels?.web-chat as OpenClaw Web ChatConfig | undefined;
+export function listOpenClawWebChatAccountIds(cfg: ClawdbotConfig): string[] {
+  const channelConfig = cfg.channels?.["web-chat"] as OpenClawWebChatConfig | undefined;
   const accounts = channelConfig?.accounts as
-    | Record<string, OpenClaw Web ChatConfig>
+    | Record<string, OpenClawWebChatConfig>
     | undefined;
 
   const ids = [DEFAULT_ACCOUNT_ID];
@@ -75,10 +75,10 @@ export function listOpenClaw Web ChatAccountIds(cfg: ClawdbotConfig): string[] {
 /**
  * 获取默认账号ID
  */
-export function resolveDefaultOpenClaw Web ChatAccountId(
+export function resolveDefaultOpenClawWebChatAccountId(
   cfg: ClawdbotConfig
 ): string | undefined {
-  const channelConfig = cfg.channels?.web-chat as OpenClaw Web ChatConfig | undefined;
+  const channelConfig = cfg.channels?.["web-chat"] as OpenClawWebChatConfig | undefined;
   if (!channelConfig?.enabled && !channelConfig?.accounts) {
     return undefined;
   }
@@ -88,11 +88,11 @@ export function resolveDefaultOpenClaw Web ChatAccountId(
 /**
  * 列出启用的账号
  */
-export function listEnabledOpenClaw Web ChatAccounts(
+export function listEnabledOpenClawWebChatAccounts(
   cfg: ClawdbotConfig
-): ResolvedOpenClaw Web ChatAccount[] {
-  const ids = listOpenClaw Web ChatAccountIds(cfg);
+): ResolvedOpenClawWebChatAccount[] {
+  const ids = listOpenClawWebChatAccountIds(cfg);
   return ids
-    .map((id) => resolveOpenClaw Web ChatAccount({ cfg, accountId: id }))
+    .map((id) => resolveOpenClawWebChatAccount({ cfg, accountId: id }))
     .filter((acc) => acc.enabled && acc.configured);
 }

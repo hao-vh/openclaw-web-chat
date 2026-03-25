@@ -1,12 +1,12 @@
 /**
- * OpenClaw Web Chat Channel 类型定义
+ * OpenClawWebChat Channel 类型定义
  * 
  * 扩展：添加 Ruyuan-IM 协议支持
  */
 
-export type OpenClaw Web ChatDomain = "local" | "custom";
+export type OpenClawWebChatDomain = "local" | "custom";
 
-export interface OpenClaw Web ChatConfig {
+export interface OpenClawWebChatConfig {
   enabled?: boolean;
   /** WebSocket 连接地址 */
   wsUrl?: string;
@@ -24,7 +24,7 @@ export interface OpenClaw Web ChatConfig {
   historyLimit?: number;
   /** 
    * 协议适配器类型
-   * - "web-chat": 原生 OpenClaw Web Chat 协议
+   * - "web-chat": 原生 OpenClawWebChat 协议
    * - "ruyuan": Ruyuan-IM 协议适配
    */
   adapter?: "web-chat" | "ruyuan";
@@ -43,11 +43,11 @@ export interface OpenClaw Web ChatConfig {
   };
 }
 
-export interface ResolvedOpenClaw Web ChatAccount {
+export interface ResolvedOpenClawWebChatAccount {
   accountId: string;
   enabled: boolean;
   configured: boolean;
-  config: OpenClaw Web ChatConfig;
+  config: OpenClawWebChatConfig;
   wsUrl: string;
   apiUrl: string;
   apiToken?: string;
@@ -57,11 +57,11 @@ export interface ResolvedOpenClaw Web ChatAccount {
   /** 使用的协议适配器 */
   adapter: "web-chat" | "ruyuan";
   /** Ruyuan-IM 配置 */
-  ruyuan?: OpenClaw Web ChatConfig["ruyuan"];
+  ruyuan?: OpenClawWebChatConfig["ruyuan"];
 }
 
-/** OpenClaw Web Chat 消息事件 */
-export interface OpenClaw Web ChatMessageEvent {
+/** OpenClawWebChat 消息事件 */
+export interface OpenClawWebChatMessageEvent {
   /** 消息唯一ID */
   messageId: string;
   /** 聊天室/频道ID */
@@ -82,23 +82,23 @@ export interface OpenClaw Web ChatMessageEvent {
   replyTo?: string;
 }
 
-/** OpenClaw Web Chat 用户上线事件 */
-export interface OpenClaw Web ChatUserOnlineEvent {
+/** OpenClawWebChat 用户上线事件 */
+export interface OpenClawWebChatUserOnlineEvent {
   userId: string;
   userName: string;
   chatId: string;
   timestamp: number;
 }
 
-/** OpenClaw Web Chat 用户下线事件 */
-export interface OpenClaw Web ChatUserOfflineEvent {
+/** OpenClawWebChat 用户下线事件 */
+export interface OpenClawWebChatUserOfflineEvent {
   userId: string;
   chatId: string;
   timestamp: number;
 }
 
 /** 发送消息请求 */
-export interface OpenClaw Web ChatSendMessageRequest {
+export interface OpenClawWebChatSendMessageRequest {
   chatId: string;
   content: string;
   messageType?: "text" | "image" | "file";
@@ -106,7 +106,7 @@ export interface OpenClaw Web ChatSendMessageRequest {
 }
 
 /** 发送消息响应 */
-export interface OpenClaw Web ChatSendMessageResponse {
+export interface OpenClawWebChatSendMessageResponse {
   success: boolean;
   messageId?: string;
   error?: string;

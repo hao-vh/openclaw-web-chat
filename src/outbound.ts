@@ -1,7 +1,7 @@
 import type { ChannelOutboundAdapter } from "openclaw/plugin-sdk";
-import { sendMessageOpenClaw Web Chat } from "./send.js";
+import { sendMessageOpenClawWebChat } from "./send.js";
 
-export const web-chatOutbound: ChannelOutboundAdapter = {
+export const webChatOutbound: ChannelOutboundAdapter = {
   deliveryMode: "direct",
   chunker: (text, limit) => {
     // 简单分片：按段落分割
@@ -22,15 +22,15 @@ export const web-chatOutbound: ChannelOutboundAdapter = {
   chunkerMode: "text",
   textChunkLimit: 2000,
   sendText: async ({ cfg, to, text }) => {
-    console.log("[OpenClaw Web Chat Outbound] Sending text to " + to + ": " + text.slice(0, 100));
-    const result = await sendMessageOpenClaw Web Chat({ cfg, to, text });
-    console.log("[OpenClaw Web Chat Outbound] Result: " + JSON.stringify(result));
+    console.log("[OpenClawWebChat Outbound] Sending text to " + to + ": " + text.slice(0, 100));
+    const result = await sendMessageOpenClawWebChat({ cfg, to, text });
+    console.log("[OpenClawWebChat Outbound] Result: " + JSON.stringify(result));
     return { channel: "web-chat", ...result };
   },
   sendMedia: async ({ cfg, to, text }) => {
     // 暂时只支持文本
     if (text?.trim()) {
-      const result = await sendMessageOpenClaw Web Chat({ cfg, to, text });
+      const result = await sendMessageOpenClawWebChat({ cfg, to, text });
       return { channel: "web-chat", ...result };
     }
     return { channel: "web-chat", success: false, error: "No content to send" };

@@ -1,17 +1,17 @@
 /**
- * OpenClaw Web Chat Monitor - 借鉴 Feishu Plugin 最佳实践
+ * OpenClawWebChat Monitor - 借鉴 Feishu Plugin 最佳实践
  * 
  * 消息监听和 Agent 触发
  */
 
 import type { ClawdbotConfig, RuntimeEnv, HistoryEntry } from "openclaw/plugin-sdk";
-import { resolveOpenClaw Web ChatAccount, listEnabledOpenClaw Web ChatAccounts } from "./accounts.js";
-import { registerMessageHandler, closeWSConnection, pollOpenClaw Web ChatMessages } from "./client.js";
-import { getOpenClaw Web ChatChannel } from "./runtime.js";
-import { sendMessageOpenClaw Web Chat } from "./send.js";
-import type { ResolvedOpenClaw Web ChatAccount, OpenClaw Web ChatMessageEvent } from "./types.js";
+import { resolveOpenClawWebChatAccount, listEnabledOpenClawWebChatAccounts } from "./accounts.js";
+import { registerMessageHandler, closeWSConnection, pollOpenClawWebChatMessages } from "./client.js";
+import { getOpenClawWebChatChannel } from "./runtime.js";
+import { sendMessageOpenClawWebChat } from "./send.js";
+import type { ResolvedOpenClawWebChatAccount, OpenClawWebChatMessageEvent } from "./types.js";
 
-export interface MonitorOpenClaw Web ChatOpts {
+export interface MonitorOpenClawWebChatOpts {
   config?: ClawdbotConfig;
   runtime?: RuntimeEnv;
   abortSignal?: AbortSignal;
@@ -19,14 +19,14 @@ export interface MonitorOpenClaw Web ChatOpts {
 }
 
 async function monitorSingleAccount(
-  account: ResolvedOpenClaw Web ChatAccount,
-  opts: MonitorOpenClaw Web ChatOpts
+  account: ResolvedOpenClawWebChatAccount,
+  opts: MonitorOpenClawWebChatOpts
 ): Promise<void> {
   const { config, runtime, abortSignal } = opts;
   const log = runtime?.log ?? console.log;
   const { accountId, connectionMode } = account;
   
-  log(`[OpenClaw Web Chat ${accountId}] Starting monitor (mode: ${connectionMode})...`);
+  log(`[OpenClawWebChat ${accountId}] Starting monitor (mode: ${connectionMode})...`);
   
   const chatHistories = new Map<string, HistoryEntry[]>();
   
@@ -38,8 +38,8 @@ async function monitorSingleAccount(
 }
 
 async function monitorWebSocket(
-  account: ResolvedOpenClaw Web ChatAccount,
-  opts: MonitorOpenClaw Web ChatOpts,
+  account: ResolvedOpenClawWebChatAccount,
+  opts: MonitorOpenClawWebChatOpts,
   chatHistories: Map<string, HistoryEntry[]>
 ): Promise<void> {
   const { config, runtime, abortSignal } = opts;
@@ -47,12 +47,12 @@ async function monitorWebSocket(
   const { accountId } = account;
   
   return new Promise((resolve) => {
-    const handleMessage = async (event: OpenClaw Web ChatMessageEvent) => {
+    const handleMessage = async (event: OpenClawWebChatMessageEvent) => {
       try {
-        log(`[OpenClaw Web Chat ${accountId}] Processing message from ${event.senderName}`);
+        log(`[OpenClawWebChat ${accountId}] Processing message from ${event.senderName}`);
         
         // 获取 Core Channel API
-        const core = getOpenClaw Web ChatChannel();
+        const core = getOpenClawWebChatChannel();
         const isGroup = !event.isDirect;
         
         // 解析路由
@@ -62,17 +62,17 @@ async function monitorWebSocket(
           peer: { kind: isGroup ? "group" : "dm", id: isGroup ? event.chatId : event.senderId },
         });
         
-        log(`[OpenClaw Web Chat ${accountId}] Routed to agent: ${route.sessionKey}`);
+        log(`[OpenClawWebChat ${accountId}] Routed to agent: ${route.sessionKey}`);
         
         // 创建 deliver 函数 - 发送回复到 Web 聊天室
         const deliver = async (payload: any) => {
           const text = payload.text ?? "";
           if (!text.trim()) return;
           
-          log(`[OpenClaw Web Chat ${accountId}] Delivering: ${text.slice(0, 50)}...`);
+          log(`[OpenClawWebChat ${accountId}] Delivering: ${text.slice(0, 50)}...`);
           
           try {
-            const result = await sendMessageOpenClaw Web Chat({
+            const result = await sendMessageOpenClawWebChat({
               cfg: config!,
               to: `chat:${event.chatId}`,
               text: text,
@@ -80,12 +80,12 @@ async function monitorWebSocket(
             });
             
             if (result.error) {
-              log(`[OpenClaw Web Chat ${accountId}] Send failed: ${result.error}`);
+              log(`[OpenClawWebChat ${accountId}] Send failed: ${result.error}`);
             } else {
-              log(`[OpenClaw Web Chat ${accountId}] Send success: ${result.messageId}`);
+              log(`[OpenClawWebChat ${accountId}] Send success: ${result.messageId}`);
             }
           } catch (err) {
-            log(`[OpenClaw Web Chat ${accountId}] Send error: ${err}`);
+            log(`[OpenClawWebChat ${accountId}] Send error: ${err}`);
           }
         };
         
@@ -93,10 +93,10 @@ async function monitorWebSocket(
         const replyResult = core.reply.createReplyDispatcherWithTyping({
           deliver,
           onError: (err: Error, info: any) => {
-            log(`[OpenClaw Web Chat ${accountId}] deliver error: ${err}`);
+            log(`[OpenClawWebChat ${accountId}] deliver error: ${err}`);
           },
           onIdle: () => {
-            log(`[OpenClaw Web Chat ${accountId}] dispatcher idle`);
+            log(`[OpenClawWebChat ${accountId}] dispatcher idle`);
           },
         });
         
@@ -111,7 +111,7 @@ async function monitorWebSocket(
         // 构建 envelope
         const envelopeOptions = core.reply.resolveEnvelopeFormatOptions(config);
         const body = core.reply.formatAgentEnvelope({
-          channel: "OpenClaw Web Chat",
+          channel: "OpenClawWebChat",
           from: isGroup ? `${event.chatId}:${event.senderId}` : event.senderId,
           timestamp: new Date(),
           envelope: envelopeOptions,
@@ -141,7 +141,7 @@ async function monitorWebSocket(
           OriginatingTo: `chat:${event.chatId}`,
         });
         
-        log(`[OpenClaw Web Chat ${accountId}] Dispatching to agent...`);
+        log(`[OpenClawWebChat ${accountId}] Dispatching to agent...`);
         
         // 关键：调用 dispatchReplyFromConfig 触发 Agent
         const { queuedFinal, counts } = await core.reply.dispatchReplyFromConfig({
@@ -153,7 +153,7 @@ async function monitorWebSocket(
         
         markDispatchIdle();
         
-        log(`[OpenClaw Web Chat ${accountId}] Dispatch complete (queuedFinal=${queuedFinal}, replies=${counts.final})`);
+        log(`[OpenClawWebChat ${accountId}] Dispatch complete (queuedFinal=${queuedFinal}, replies=${counts.final})`);
         
         // 保存历史
         const historyKey = `${accountId}:${event.chatId}`;
@@ -161,7 +161,7 @@ async function monitorWebSocket(
         history.push({ role: "user", content: event.content, timestamp: event.timestamp });
         chatHistories.set(historyKey, history);
       } catch (err) {
-        log(`[OpenClaw Web Chat ${accountId}] Error handling message: ${err}`);
+        log(`[OpenClawWebChat ${accountId}] Error handling message: ${err}`);
       }
     };
     
@@ -170,7 +170,7 @@ async function monitorWebSocket(
     
     // 处理终止
     const handleAbort = () => {
-      log(`[OpenClaw Web Chat ${accountId}] Abort signal received, stopping`);
+      log(`[OpenClawWebChat ${accountId}] Abort signal received, stopping`);
       cleanup();
       closeWSConnection(accountId);
       resolve();
@@ -186,40 +186,40 @@ async function monitorWebSocket(
 }
 
 async function monitorHTTP(
-  account: ResolvedOpenClaw Web ChatAccount,
-  opts: MonitorOpenClaw Web ChatOpts,
+  account: ResolvedOpenClawWebChatAccount,
+  opts: MonitorOpenClawWebChatOpts,
   chatHistories: Map<string, HistoryEntry[]>
 ): Promise<void> {
   const { runtime } = opts;
   const log = runtime?.log ?? console.log;
-  log("[OpenClaw Web Chat] HTTP polling not fully implemented");
+  log("[OpenClawWebChat] HTTP polling not fully implemented");
 }
 
-export async function monitorOpenClaw Web ChatProvider(
-  opts: MonitorOpenClaw Web ChatOpts = {}
+export async function monitorOpenClawWebChatProvider(
+  opts: MonitorOpenClawWebChatOpts = {}
 ): Promise<void> {
   const { config, runtime, accountId } = opts;
   const log = runtime?.log ?? console.log;
   
   if (!config) {
-    throw new Error("Config is required for OpenClaw Web Chat monitor");
+    throw new Error("Config is required for OpenClawWebChat monitor");
   }
   
   if (accountId) {
-    const account = resolveOpenClaw Web ChatAccount({ cfg: config, accountId });
+    const account = resolveOpenClawWebChatAccount({ cfg: config, accountId });
     if (!account.enabled || !account.configured) {
-      throw new Error(`OpenClaw Web Chat account "${accountId}" not configured or disabled`);
+      throw new Error(`OpenClawWebChat account "${accountId}" not configured or disabled`);
     }
     return monitorSingleAccount(account, opts);
   }
   
-  const accounts = listEnabledOpenClaw Web ChatAccounts(config);
+  const accounts = listEnabledOpenClawWebChatAccounts(config);
   if (accounts.length === 0) {
-    log("[OpenClaw Web Chat] No enabled accounts found");
+    log("[OpenClawWebChat] No enabled accounts found");
     return;
   }
   
-  log(`[OpenClaw Web Chat] Starting monitor for ${accounts.length} account(s)`);
+  log(`[OpenClawWebChat] Starting monitor for ${accounts.length} account(s)`);
   
   await Promise.all(
     accounts.map((account) => monitorSingleAccount(account, opts))

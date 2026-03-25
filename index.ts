@@ -1,13 +1,13 @@
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
-import { setOpenClaw Web ChatRuntime } from "./src/runtime.js";
-import { sendMessageOpenClaw Web Chat } from "./src/send.js";
-import { web-chatOutbound } from "./src/outbound.js";
+import { setOpenClawWebChatRuntime } from "./src/runtime.js";
+import { sendMessageOpenClawWebChat } from "./src/send.js";
+import { webChatOutbound } from "./src/outbound.js";
 
 const meta = {
   id: "web-chat",
-  label: "OpenClaw Web Chat",
-  selectionLabel: "OpenClaw Web Chat Web Chat",
+  label: "OpenClawWebChat",
+  selectionLabel: "OpenClawWebChat Web Chat",
   docsPath: "/channels/web-chat",
   docsLabel: "web-chat",
   blurb: "Connect your custom Web Chat room to OpenClaw.",
@@ -15,7 +15,7 @@ const meta = {
   order: 100,
 };
 
-const web-chatPlugin = {
+const webChatPlugin = {
   id: "web-chat",
   meta,
   capabilities: {
@@ -34,10 +34,10 @@ const web-chatPlugin = {
   },
   gateway: {
     startAccount: async (ctx) => {
-      console.log("[OpenClaw Web Chat] Starting provider...");
+      console.log("[OpenClawWebChat] Starting provider...");
       ctx.setStatus({ accountId: ctx.accountId, port: null });
-      const { monitorOpenClaw Web ChatProvider } = await import("./src/monitor.js");
-      return monitorOpenClaw Web ChatProvider({
+      const { monitorOpenClawWebChatProvider } = await import("./src/monitor.js");
+      return monitorOpenClawWebChatProvider({
         config: ctx.cfg,
         runtime: ctx.runtime,
         abortSignal: ctx.abortSignal,
@@ -46,24 +46,24 @@ const web-chatPlugin = {
     },
   },
   send: {
-    message: sendMessageOpenClaw Web Chat,
+    message: sendMessageOpenClawWebChat,
   },
-  outbound: web-chatOutbound,
+  outbound: webChatOutbound,
 };
 
 const plugin = {
   id: "web-chat",
-  name: "OpenClaw Web Chat",
+  name: "OpenClawWebChat",
   version: "1.3.0",
-  description: "OpenClaw Web Chat Web Chat channel plugin",
+  description: "OpenClawWebChat Web Chat channel plugin",
   configSchema: emptyPluginConfigSchema(),
   register(api: OpenClawPluginApi) {
-    console.log("[OpenClaw Web Chat] Registering channel...");
-    setOpenClaw Web ChatRuntime(api.runtime);
-    api.registerChannel({ plugin: web-chatPlugin });
-    console.log("[OpenClaw Web Chat] Channel registered!");
+    console.log("[OpenClawWebChat] Registering channel...");
+    setOpenClawWebChatRuntime(api.runtime);
+    api.registerChannel({ plugin: webChatPlugin });
+    console.log("[OpenClawWebChat] Channel registered!");
   },
 };
 
-export { web-chatPlugin, sendMessageOpenClaw Web Chat };
+export { webChatPlugin, sendMessageOpenClawWebChat };
 export default plugin;

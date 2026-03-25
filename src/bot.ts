@@ -1,5 +1,5 @@
 /**
- * OpenClaw Web Chat 消息处理逻辑 - OpenClaw Core 路由接入版
+ * OpenClawWebChat 消息处理逻辑 - OpenClaw Core 路由接入版
  */
 
 import type {
@@ -9,12 +9,12 @@ import type {
   InboundMessage,
   Envelope,
 } from "openclaw/plugin-sdk";
-import type { OpenClaw Web ChatMessageEvent } from "./types.js";
-import { sendMessageOpenClaw Web Chat } from "./send.js";
+import type { OpenClawWebChatMessageEvent } from "./types.js";
+import { sendMessageOpenClawWebChat } from "./send.js";
 
-export interface HandleOpenClaw Web ChatMessageOpts {
+export interface HandleOpenClawWebChatMessageOpts {
   cfg: ClawdbotConfig;
-  event: OpenClaw Web ChatMessageEvent;
+  event: OpenClawWebChatMessageEvent;
   runtime?: RuntimeEnv;
   chatHistories: Map<string, HistoryEntry[]>;
   accountId: string;
@@ -32,16 +32,16 @@ export interface HandleOpenClaw Web ChatMessageOpts {
  * 4. 等待 OpenClaw 处理并返回回复
  * 5. 将回复发送回 Web 聊天室
  */
-export async function handleOpenClaw Web ChatMessage(
-  opts: HandleOpenClaw Web ChatMessageOpts
+export async function handleOpenClawWebChatMessage(
+  opts: HandleOpenClawWebChatMessageOpts
 ): Promise<void> {
   const { cfg, event, runtime, chatHistories, accountId, onMessage } = opts;
   const log = runtime?.log ?? console.log;
 
-  log(`[OpenClaw Web Chat ${accountId}] Received message from ${event.senderName}: ${event.content.slice(0, 50)}...`);
+  log(`[OpenClawWebChat ${accountId}] Received message from ${event.senderName}: ${event.content.slice(0, 50)}...`);
 
   // 标准化消息格式为 OpenClaw Envelope
-  const envelope = createOpenClaw Web ChatEnvelope(event, accountId);
+  const envelope = createOpenClawWebChatEnvelope(event, accountId);
 
   // 保存到历史记录
   const historyKey = `${accountId}:${envelope.chat_id}`;
@@ -58,21 +58,21 @@ export async function handleOpenClaw Web ChatMessage(
     try {
       await onMessage(envelope);
     } catch (err) {
-      log(`[OpenClaw Web Chat ${accountId}] Error routing message: ${err}`);
+      log(`[OpenClawWebChat ${accountId}] Error routing message: ${err}`);
       
       // 发送错误提示给用户
       await sendReply(cfg, accountId, event, "抱歉，处理消息时出错了，请稍后重试。");
     }
   } else {
-    log(`[OpenClaw Web Chat ${accountId}] Warning: No onMessage handler registered`);
+    log(`[OpenClawWebChat ${accountId}] Warning: No onMessage handler registered`);
   }
 }
 
 /**
  * 创建 OpenClaw Envelope
  */
-function createOpenClaw Web ChatEnvelope(
-  event: OpenClaw Web ChatMessageEvent,
+function createOpenClawWebChatEnvelope(
+  event: OpenClawWebChatMessageEvent,
   accountId: string
 ): Envelope {
   const chatId = event.isDirect
@@ -112,10 +112,10 @@ function createOpenClaw Web ChatEnvelope(
  * 
  * 这是 OpenClaw Core 处理完消息后调用的回调
  */
-export async function sendOpenClaw Web ChatReply(
+export async function sendOpenClawWebChatReply(
   cfg: ClawdbotConfig,
   accountId: string,
-  originalEvent: OpenClaw Web ChatMessageEvent,
+  originalEvent: OpenClawWebChatMessageEvent,
   replyText: string
 ): Promise<void> {
   const chatId = originalEvent.isDirect
@@ -126,7 +126,7 @@ export async function sendOpenClaw Web ChatReply(
     ? `user:${originalEvent.senderId}`
     : `chat:${originalEvent.chatId}`;
 
-  await sendMessageOpenClaw Web Chat({
+  await sendMessageOpenClawWebChat({
     cfg,
     accountId,
     to: target,
@@ -141,14 +141,14 @@ export async function sendOpenClaw Web ChatReply(
 async function sendReply(
   cfg: ClawdbotConfig,
   accountId: string,
-  originalEvent: OpenClaw Web ChatMessageEvent,
+  originalEvent: OpenClawWebChatMessageEvent,
   text: string
 ): Promise<void> {
   const target = originalEvent.isDirect
     ? `user:${originalEvent.senderId}`
     : `chat:${originalEvent.chatId}`;
 
-  await sendMessageOpenClaw Web Chat({
+  await sendMessageOpenClawWebChat({
     cfg,
     accountId,
     to: target,
@@ -160,7 +160,7 @@ async function sendReply(
 /**
  * 构建回复消息格式
  */
-export function buildOpenClaw Web ChatReply(
+export function buildOpenClawWebChatReply(
   text: string,
   replyTo?: string
 ): {
@@ -181,7 +181,7 @@ export function buildOpenClaw Web ChatReply(
  * 用于更高级的集成场景
  */
 export function createInboundMessage(
-  event: OpenClaw Web ChatMessageEvent,
+  event: OpenClawWebChatMessageEvent,
   accountId: string
 ): InboundMessage {
   return {

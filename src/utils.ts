@@ -1,5 +1,5 @@
 /**
- * OpenClaw Web Chat 工具函数
+ * OpenClawWebChat 工具函数
  */
 
 import { getConnectionStatus } from "./client.js";
