@@ -1,7 +1,6 @@
-import { marked } from 'marked';
-import { WebSocketServer } from 'ws';
-import http from 'http';
-import { v4 as uuidv4 } from 'uuid';
+const http = require('http');
+const { WebSocketServer } = require('ws');
+const { v4: uuidv4 } = require('uuid');
 
 const PORT = 3456;
 const WS_PATH = '/ws';
