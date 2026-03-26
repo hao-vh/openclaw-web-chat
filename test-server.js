@@ -427,43 +427,63 @@ function handleWebSocketMessage(ws, msg, clientInfo) {
 
   // OpenClaw 插件通过 send_message 发送 AI 回复
   if (msg.type === 'send_message') {
+    const targetChatId = msg.data?.chatId || 'room_1';
     const message = {
       messageId: `msg_${uuidv4()}`,
-      chatId: msg.data?.chatId || 'room_1',
+      chatId: targetChatId,
       senderId: 'ai_bot',
       senderName: 'AI Assistant',
       content: msg.data?.content || '',
       messageType: msg.data?.messageType || 'text',
       timestamp: Date.now(),
-      isDirect: msg.data?.chatId ? msg.data.chatId.startsWith('user:') : false,
+      isDirect: true,
       replyTo: msg.data?.replyTo || null,
       isBot: true,
     };
     messages.push(message);
-    // 关键修复：排除发送者（OpenClaw 插件），避免消息回环
-    broadcast(message, ws);
+    // 一对一：只发给目标用户，不广播
+    let delivered = false;
+    clients.forEach((info, clientWs) => {
+      if (info.chatId === targetChatId && clientWs.readyState === 1) {
+        clientWs.send(JSON.stringify(message));
+        delivered = true;
+      }
+    });
+    if (!delivered) {
+      console.log('[TestServer] Target user not found for chatId:', targetChatId, '- broadcasting as fallback');
+      broadcast(message, ws);
+    }
     ws.send(JSON.stringify({ requestId: msg.requestId, success: true, messageId: message.messageId }));
-    console.log('[TestServer] AI reply broadcast:', message.content.slice(0, 100));
+    console.log('[TestServer] AI reply to', targetChatId, ':', message.content.slice(0, 100));
     return;
   }
 
-  // 网站用户直接发送的消息
+  // 网站用户直接发送的消息（一对一私聊）
   if (msg.messageId && msg.content) {
+    // 绑定用户的 chatId（私聊会话）
+    if (msg.chatId && !clientInfo.chatId) {
+      clientInfo.chatId = msg.chatId;
+    }
     const message = {
       messageId: msg.messageId,
-      chatId: msg.chatId || 'room_1',
+      chatId: msg.chatId || clientInfo.chatId || 'room_1',
       senderId: msg.senderId || clientInfo.userId,
       senderName: msg.senderName || clientInfo.userName,
       content: msg.content,
       messageType: msg.messageType || 'text',
       timestamp: msg.timestamp || Date.now(),
-      isDirect: msg.isDirect || false,
+      isDirect: true,
       replyTo: msg.replyTo || null,
       isBot: false,
     };
     messages.push(message);
-    // 广播给所有客户端（包括 OpenClaw 插件和发送者自己）
-    broadcast(message);
+    // 一对一：只转发给 OpenClaw 插件（非普通用户），不广播给其他用户
+    clients.forEach((info, clientWs) => {
+      if (clientWs !== ws && !info.chatId && clientWs.readyState === 1) {
+        // 没有 chatId 的客户端 = OpenClaw 插件连接
+        clientWs.send(JSON.stringify(message));
+      }
+    });
     return;
   }
   
@@ -804,7 +824,8 @@ function getEmbedHtmlPage() {
 
     // 从 URL 参数读取配置
     const params = new URLSearchParams(window.location.search);
-    const chatId = params.get('chatId') || 'room_1';
+    // 每个用户生成唯一 chatId（一对一私聊）
+    const chatId = params.get('chatId') || ('session_' + userId);
     const botName = params.get('botName') || 'AIMason';
     if (params.get('title')) {
       document.getElementById('header-title').textContent = params.get('title');
@@ -888,7 +909,7 @@ function getEmbedHtmlPage() {
       const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       div.innerHTML = \`
         <div class="bubble">\${escapeHtml(text)}</div>
-        <div class="meta">\${userName} · \${time}</div>
+        <div class="meta">\${time}</div>
       \`;
       messagesEl.appendChild(div);
       scrollToBottom();
@@ -904,7 +925,7 @@ function getEmbedHtmlPage() {
       const time = timestamp ? new Date(timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       div.innerHTML = \`
         <div class="bubble">\${parsed}</div>
-        <div class="meta">\${escapeHtml(name || botName)} · \${time}</div>
+        <div class="meta">\${time}</div>
       \`;
       messagesEl.appendChild(div);
       scrollToBottom();
