@@ -459,9 +459,8 @@ function handleWebSocketMessage(ws, msg, clientInfo) {
       isBot: false,
     };
     messages.push(message);
-    // 广播给所有客户端（包括 OpenClaw 插件，让它处理）
-    // 排除发送者自己（网站前端已经本地显示了）
-    broadcast(message, ws);
+    // 广播给所有客户端（包括 OpenClaw 插件和发送者自己）
+    broadcast(message);
     return;
   }
   
