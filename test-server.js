@@ -363,6 +363,30 @@ server.on('upgrade', (request, socket, head) => {
   }
 });
 
+// ===== 服务端心跳保活 =====
+// 每 25 秒 ping 所有客户端，防止 Nginx 代理超时断开（默认60s）
+// 同时检测死连接并清理
+const HEARTBEAT_INTERVAL = 25000;
+const CLIENT_TIMEOUT = 60000; // 60秒无 pong 响应视为死连接
+
+setInterval(() => {
+  const now = Date.now();
+  clients.forEach((info, ws) => {
+    if (info.lastPong && (now - info.lastPong) > CLIENT_TIMEOUT) {
+      console.log(`[TestServer] Client ${info.userId} timed out, terminating`);
+      ws.terminate();
+      return;
+    }
+    if (ws.readyState === 1) {
+      ws.ping();
+    }
+  });
+  // 也 ping admin 客户端
+  adminClients.forEach((ws) => {
+    if (ws.readyState === 1) ws.ping();
+  });
+}, HEARTBEAT_INTERVAL);
+
 wss.on('connection', (ws, req) => {
   // 检查是否是 admin WebSocket 连接
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
@@ -383,14 +407,20 @@ wss.on('connection', (ws, req) => {
     return;
   }
 
-  console.log('[TestServer] WebSocket client connected');
+  console.log('[TestServer] WebSocket client connected (total:', clients.size + 1, ')');
   const clientInfo = {
     userId: `user_${uuidv4().slice(0, 8)}`,
     userName: `用户${Math.floor(Math.random() * 9000) + 1000}`,
     joinedAt: Date.now(),
+    lastPong: Date.now(),
   };
   clients.set(ws, clientInfo);
   recordConnectionEvent('connected', clientInfo.userId, clientInfo.userName);
+
+  // 收到 pong 更新时间戳
+  ws.on('pong', () => {
+    clientInfo.lastPong = Date.now();
+  });
 
   ws.send(JSON.stringify({
     type: 'system',
@@ -407,8 +437,8 @@ wss.on('connection', (ws, req) => {
     }
   });
 
-  ws.on('close', () => {
-    console.log('[TestServer] WebSocket client disconnected');
+  ws.on('close', (code, reason) => {
+    console.log(`[TestServer] Client ${clientInfo.userId} disconnected (code: ${code}, total: ${clients.size - 1})`);
     recordConnectionEvent('disconnected', clientInfo.userId, clientInfo.userName);
     clients.delete(ws);
     rooms.forEach((members, roomId) => {
@@ -417,7 +447,7 @@ wss.on('connection', (ws, req) => {
   });
 
   ws.on('error', (err) => {
-    console.error('[TestServer] WebSocket error:', err);
+    console.error(`[TestServer] Client ${clientInfo.userId} error:`, err.message || err);
     recordConnectionEvent('error', clientInfo.userId, clientInfo.userName);
   });
 });
