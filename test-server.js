@@ -230,18 +230,21 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (req.url === '/') {
+  // 主页和 embed 都使用深色客服主题
+  if (req.url === '/' || req.url === '/embed' || req.url?.startsWith('/embed?')) {
+    if (req.url === '/embed' || req.url?.startsWith('/embed?')) {
+      res.setHeader('X-Frame-Options', 'ALLOWALL');
+      res.setHeader('Content-Security-Policy', "frame-ancestors *");
+    }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(getHtmlPage());
+    res.end(getEmbedHtmlPage());
     return;
   }
 
-  // iframe 嵌入版聊天页面
-  if (req.url === '/embed' || req.url?.startsWith('/embed?')) {
-    res.setHeader('X-Frame-Options', 'ALLOWALL');
-    res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  // 旧版多房间聊天页面（保留，可通过 /classic 访问）
+  if (req.url === '/classic') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(getEmbedHtmlPage());
+    res.end(getHtmlPage());
     return;
   }
 
