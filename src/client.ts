@@ -99,6 +99,9 @@ function createWSConnection(
     isClosed: false,
   };
 
+  let reconnectAttempts = 0;
+  let pingTimer: NodeJS.Timeout | undefined;
+
   // Ruyuan-IM 模式：初始化专用状态
   if (isRuyuan) {
     state.ruyuanState = initRuyuanConnectionState(
@@ -119,7 +122,16 @@ function createWSConnection(
 
     ws.on("open", () => {
       console.log(`[OpenClawWebChat ${accountId}] WebSocket connected`);
-      
+      reconnectAttempts = 0; // 连接成功，重置重连计数
+
+      // 启动心跳 ping（每30秒），检测死连接
+      if (pingTimer) clearInterval(pingTimer);
+      pingTimer = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.ping();
+        }
+      }, 30000);
+
       // Ruyuan-IM 模式：连接成功后发送上线请求
       if (isRuyuan && state.ruyuanState) {
         sendRuyuanOnline(state);
@@ -134,7 +146,7 @@ function createWSConnection(
       console.log('[OpenClawWebChat Debug] Raw message received:', rawData.toString().slice(0, 100));
       try {
         const data = JSON.parse(rawData.toString());
-        
+
         // 根据适配器类型处理消息
         if (isRuyuan) {
           handleRuyuanMessage(data, state, accountId);
@@ -146,9 +158,12 @@ function createWSConnection(
       }
     });
 
-    ws.on("close", () => {
-      console.log(`[OpenClawWebChat ${accountId}] WebSocket disconnected`);
+    ws.on("close", (code, reason) => {
+      console.log(`[OpenClawWebChat ${accountId}] WebSocket disconnected (code: ${code})`);
       state.isReady = false;
+
+      // 清理心跳 ping
+      if (pingTimer) { clearInterval(pingTimer); pingTimer = undefined; }
 
       // 清理 Ruyuan-IM 心跳定时器
       if (state.ruyuanState?.heartbeatTimer) {
@@ -156,15 +171,34 @@ function createWSConnection(
         state.ruyuanState.heartbeatTimer = undefined;
       }
 
-      if (autoReconnect && !state.isClosed) {
-        console.log(`[OpenClawWebChat ${accountId}] Reconnecting in 5s...`);
-        state.reconnectTimer = setTimeout(connect, 5000);
-      }
+      scheduleReconnect();
     });
 
     ws.on("error", (err) => {
-      console.error(`[OpenClawWebChat ${accountId}] WebSocket error:`, err);
+      console.error(`[OpenClawWebChat ${accountId}] WebSocket error:`, err.message || err);
+      // error 事件后通常会触发 close，但以防万一也检查一下
+      if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+        state.isReady = false;
+        if (pingTimer) { clearInterval(pingTimer); pingTimer = undefined; }
+        scheduleReconnect();
+      }
     });
+  };
+
+  // 指数退避重连：3s, 6s, 12s, 24s, ... 最大60s
+  const scheduleReconnect = () => {
+    if (!autoReconnect || state.isClosed) return;
+    if (state.reconnectTimer) return; // 已经有定时器在跑了
+
+    reconnectAttempts++;
+    const delay = Math.min(3000 * Math.pow(2, reconnectAttempts - 1), 60000);
+    console.log(`[OpenClawWebChat ${accountId}] Reconnecting in ${delay / 1000}s (attempt #${reconnectAttempts})...`);
+    state.reconnectTimer = setTimeout(() => {
+      state.reconnectTimer = undefined;
+      if (!state.isClosed) {
+        connect();
+      }
+    }, delay);
   };
 
   connectionPool.set(accountId, state);
