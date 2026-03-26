@@ -420,40 +420,48 @@ wss.on('connection', (ws, req) => {
 });
 
 function handleWebSocketMessage(ws, msg, clientInfo) {
-  console.log('[TestServer] Received message:', msg);
+  console.log('[TestServer] Received message type:', msg.type || 'raw', 'from:', clientInfo.userName);
+
+  // OpenClaw 插件通过 send_message 发送 AI 回复
   if (msg.type === 'send_message') {
     const message = {
       messageId: `msg_${uuidv4()}`,
       chatId: msg.data?.chatId || 'room_1',
-      senderId: clientInfo.userId,
-      senderName: clientInfo.userName,
+      senderId: 'ai_bot',
+      senderName: 'AI Assistant',
       content: msg.data?.content || '',
       messageType: msg.data?.messageType || 'text',
       timestamp: Date.now(),
-      isDirect: msg.data?.chatId?.startsWith('user:') || false,
+      isDirect: msg.data?.chatId ? msg.data.chatId.startsWith('user:') : false,
       replyTo: msg.data?.replyTo || null,
+      isBot: true,
     };
     messages.push(message);
-    broadcast(message);
+    // 关键修复：排除发送者（OpenClaw 插件），避免消息回环
+    broadcast(message, ws);
     ws.send(JSON.stringify({ requestId: msg.requestId, success: true, messageId: message.messageId }));
-    console.log('[TestServer] Message broadcast:', message.content);
+    console.log('[TestServer] AI reply broadcast:', message.content.slice(0, 100));
     return;
   }
-  
+
+  // 网站用户直接发送的消息
   if (msg.messageId && msg.content) {
     const message = {
       messageId: msg.messageId,
       chatId: msg.chatId || 'room_1',
-      senderId: clientInfo.userId,
-      senderName: clientInfo.userName,
+      senderId: msg.senderId || clientInfo.userId,
+      senderName: msg.senderName || clientInfo.userName,
       content: msg.content,
       messageType: msg.messageType || 'text',
-      timestamp: Date.now(),
+      timestamp: msg.timestamp || Date.now(),
       isDirect: msg.isDirect || false,
       replyTo: msg.replyTo || null,
+      isBot: false,
     };
     messages.push(message);
-    broadcast(message);
+    // 广播给所有客户端（包括 OpenClaw 插件，让它处理）
+    // 排除发送者自己（网站前端已经本地显示了）
+    broadcast(message, ws);
     return;
   }
   
