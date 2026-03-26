@@ -383,7 +383,7 @@ wss.on('connection', (ws, req) => {
   console.log('[TestServer] WebSocket client connected');
   const clientInfo = {
     userId: `user_${uuidv4().slice(0, 8)}`,
-    userName: `User_${Math.floor(Math.random() * 1000)}`,
+    userName: `用户${Math.floor(Math.random() * 9000) + 1000}`,
     joinedAt: Date.now(),
   };
   clients.set(ws, clientInfo);
@@ -515,187 +515,280 @@ function getEmbedHtmlPage() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Assistant</title>
+  <title>AIMason 智能客服</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"><\/script>
   <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #111827;
+      --bg-card: rgba(20, 30, 48, 0.6);
+      --bg-card-solid: #14202f;
+      --blue: #3b82f6;
+      --cyan: #06b6d4;
+      --border: rgba(59, 130, 246, 0.15);
+      --border-hover: rgba(59, 130, 246, 0.4);
+      --text-primary: #e2e8f0;
+      --text-secondary: rgba(148, 163, 184, 0.8);
+      --text-muted: rgba(100, 116, 139, 0.7);
+      --glow-blue: rgba(59, 130, 246, 0.3);
+      --glow-cyan: rgba(6, 182, 212, 0.2);
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; overflow: hidden; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #fff; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
 
-    .chat-container { display: flex; flex-direction: column; height: 100vh; }
+    .chat-container {
+      display: flex; flex-direction: column; height: 100vh;
+      background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+    }
 
-    /* Header */
+    /* ===== Header ===== */
     .chat-header {
-      padding: 12px 16px;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(10, 14, 23, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
       flex-shrink: 0;
     }
-    .chat-header-left { display: flex; align-items: center; gap: 10px; }
+    .chat-header-left { display: flex; align-items: center; gap: 12px; }
     .chat-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg, #42a5f5, #1976d2);
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
+      font-size: 20px;
+      box-shadow: 0 0 20px var(--glow-blue);
+      position: relative;
     }
-    .chat-header h3 { font-size: 15px; font-weight: 600; }
-    .chat-header .subtitle { font-size: 12px; color: rgba(255,255,255,0.7); }
-    .status-indicator { display: flex; align-items: center; gap: 5px; font-size: 12px; color: rgba(255,255,255,0.8); }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; }
-    .status-dot.online { background: #4caf50; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .chat-avatar::after {
+      content: ''; position: absolute; inset: -2px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      opacity: 0.3; z-index: -1; filter: blur(6px);
+    }
+    .chat-header h3 {
+      font-size: 15px; font-weight: 600;
+      background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .chat-header .subtitle { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+    .status-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #475569; transition: all 0.3s; }
+    .status-dot.online { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.6); animation: glow-pulse 2s infinite; }
+    @keyframes glow-pulse { 0%,100%{ box-shadow: 0 0 8px rgba(34,197,94,0.6) } 50%{ box-shadow: 0 0 16px rgba(34,197,94,0.4) } }
 
-    /* Messages */
+    /* ===== Messages ===== */
     .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: #f8f9fa;
+      flex: 1; overflow-y: auto; padding: 20px;
+      display: flex; flex-direction: column; gap: 16px;
     }
-    .messages::-webkit-scrollbar { width: 5px; }
-    .messages::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.2); border-radius: 4px; }
+    .messages::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.4); }
 
-    .message { max-width: 85%; display: flex; flex-direction: column; }
+    .message { max-width: 82%; display: flex; flex-direction: column; animation: msg-in 0.3s ease-out; }
+    @keyframes msg-in { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
     .message.bot { align-self: flex-start; }
     .message.user { align-self: flex-end; }
 
     .message .bubble {
-      padding: 10px 14px;
-      border-radius: 16px;
-      font-size: 14px;
-      line-height: 1.6;
-      word-wrap: break-word;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      padding: 12px 16px; border-radius: 16px;
+      font-size: 14px; line-height: 1.7; word-wrap: break-word;
     }
-    .message.bot .bubble { background: #fff; color: #333; border-bottom-left-radius: 4px; }
-    .message.user .bubble { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; border-bottom-right-radius: 4px; }
+    .message.bot .bubble {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      color: var(--text-primary);
+      backdrop-filter: blur(8px);
+    }
+    .message.user .bubble {
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      border-bottom-right-radius: 4px;
+      color: #fff;
+      box-shadow: 0 4px 20px var(--glow-blue);
+    }
 
-    .message .bubble h1,.message .bubble h2,.message .bubble h3 { margin: 6px 0; font-size: 15px; }
-    .message .bubble p { margin: 4px 0; }
-    .message .bubble code { background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 13px; }
-    .message .bubble pre { background: #f5f5f5; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
-    .message .bubble pre code { background: none; padding: 0; }
-    .message .bubble ul,.message .bubble ol { padding-left: 18px; margin: 4px 0; }
-    .message .bubble blockquote { border-left: 3px solid #ddd; padding-left: 10px; margin: 4px 0; color: #666; }
-    .message .bubble table { border-collapse: collapse; margin: 6px 0; font-size: 13px; }
-    .message .bubble th,.message .bubble td { border: 1px solid #ddd; padding: 5px 8px; }
-    .message .bubble th { background: #f5f5f5; }
+    /* Markdown 样式 - 深色主题 */
+    .message.bot .bubble h1,.message.bot .bubble h2,.message.bot .bubble h3 { margin: 8px 0 4px; font-size: 15px; color: #e2e8f0; }
+    .message.bot .bubble p { margin: 4px 0; }
+    .message.bot .bubble code {
+      background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59,130,246,0.2);
+      padding: 1px 6px; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 13px; color: #7dd3fc;
+    }
+    .message.bot .bubble pre {
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+      padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0;
+    }
+    .message.bot .bubble pre code { background: none; border: none; padding: 0; color: #a5f3fc; }
+    .message.bot .bubble ul,.message.bot .bubble ol { padding-left: 18px; margin: 4px 0; }
+    .message.bot .bubble li { margin: 2px 0; }
+    .message.bot .bubble blockquote {
+      border-left: 3px solid var(--blue); padding-left: 12px; margin: 6px 0;
+      color: var(--text-secondary); font-style: italic;
+    }
+    .message.bot .bubble table { border-collapse: collapse; margin: 8px 0; font-size: 13px; width: 100%; }
+    .message.bot .bubble th { background: rgba(59,130,246,0.1); padding: 6px 10px; border: 1px solid var(--border); color: #93c5fd; text-align: left; }
+    .message.bot .bubble td { padding: 6px 10px; border: 1px solid var(--border); }
+    .message.bot .bubble a { color: #60a5fa; text-decoration: none; }
+    .message.bot .bubble a:hover { text-decoration: underline; }
 
-    .message .meta { font-size: 11px; color: #999; margin-top: 3px; padding: 0 4px; }
+    .message .meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; padding: 0 4px; }
     .message.user .meta { text-align: right; }
 
-    .message.system { align-self: center; }
-    .message.system .bubble { background: #fff3e0; color: #e65100; font-size: 13px; padding: 6px 14px; border-radius: 12px; }
+    /* ===== Welcome ===== */
+    .welcome {
+      text-align: center; padding: 40px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+    }
+    .welcome-icon {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; box-shadow: 0 0 40px var(--glow-blue);
+    }
+    .welcome h3 {
+      font-size: 18px; font-weight: 600;
+      background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .welcome p { font-size: 13px; color: var(--text-secondary); max-width: 280px; line-height: 1.6; }
+    .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; }
+    .quick-action {
+      padding: 8px 14px; border-radius: 20px; font-size: 12px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-secondary); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .quick-action:hover {
+      border-color: var(--border-hover); color: var(--text-primary);
+      background: rgba(59,130,246,0.08); box-shadow: 0 0 12px var(--glow-blue);
+    }
 
-    /* Welcome */
-    .welcome { text-align: center; padding: 30px 20px; color: #888; }
-    .welcome h3 { font-size: 16px; color: #555; margin-bottom: 8px; }
-    .welcome p { font-size: 13px; }
-
-    /* Typing indicator */
-    .typing { display: none; align-self: flex-start; padding: 8px 14px; }
+    /* ===== Typing ===== */
+    .typing { display: none; align-self: flex-start; padding: 0 20px 4px; }
+    .typing-inner {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: 16px; border-bottom-left-radius: 4px;
+      background: var(--bg-card); border: 1px solid var(--border);
+    }
     .typing .dots { display: flex; gap: 4px; }
-    .typing .dots span { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: bounce 1.4s infinite; }
+    .typing .dots span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--blue); animation: t-bounce 1.4s infinite;
+    }
     .typing .dots span:nth-child(2) { animation-delay: 0.2s; }
     .typing .dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+    @keyframes t-bounce { 0%,80%,100%{transform:translateY(0);opacity:0.4} 40%{transform:translateY(-6px);opacity:1} }
+    .typing-label { font-size: 12px; color: var(--text-muted); }
 
-    /* Input */
+    /* ===== Input ===== */
     .input-area {
-      padding: 12px 16px;
-      border-top: 1px solid #e8e8e8;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      background: #fff;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 10px; align-items: center;
+      background: rgba(10, 14, 23, 0.85);
+      backdrop-filter: blur(12px);
       flex-shrink: 0;
     }
     .input-area input {
-      flex: 1;
-      padding: 10px 14px;
-      border: 1px solid #e0e0e0;
-      border-radius: 20px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
+      flex: 1; padding: 11px 16px;
+      border: 1px solid var(--border); border-radius: 12px;
+      font-size: 14px; outline: none;
+      background: var(--bg-card); color: var(--text-primary);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
     }
-    .input-area input:focus { border-color: #1976d2; }
-    .input-area input:disabled { background: #f5f5f5; }
+    .input-area input::placeholder { color: var(--text-muted); }
+    .input-area input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1), 0 0 12px var(--glow-blue);
+    }
+    .input-area input:disabled { opacity: 0.4; }
     .send-btn {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #1976d2, #1565c0);
-      color: white;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      transition: transform 0.1s, opacity 0.2s;
-      flex-shrink: 0;
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      color: white; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px var(--glow-blue);
     }
-    .send-btn:hover { transform: scale(1.05); }
-    .send-btn:active { transform: scale(0.95); }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .send-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--glow-blue); }
+    .send-btn:active { transform: translateY(0) scale(0.95); }
+    .send-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    /* Powered by */
+    /* ===== Footer ===== */
     .powered-by {
-      text-align: center;
-      padding: 4px;
-      font-size: 11px;
-      color: #bbb;
-      background: #fff;
+      text-align: center; padding: 6px;
+      font-size: 10px; color: var(--text-muted);
+      background: rgba(10, 14, 23, 0.6);
       flex-shrink: 0;
     }
-    .powered-by a { color: #999; text-decoration: none; }
+    .powered-by a { color: rgba(59,130,246,0.5); text-decoration: none; }
+    .powered-by a:hover { color: var(--blue); }
   </style>
 </head>
 <body>
   <div class="chat-container">
     <div class="chat-header">
       <div class="chat-header-left">
-        <div class="chat-avatar">🤖</div>
+        <div class="chat-avatar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M20 21v-2a4 4 0 0 0-3-3.87"/><path d="M4 21v-2a4 4 0 0 1 3-3.87"/><circle cx="12" cy="17" r="1"/><path d="M9 17h6"/></svg>
+        </div>
         <div>
-          <h3>AI Assistant</h3>
-          <div class="subtitle">AIMason Smart Assistant</div>
+          <h3 id="header-title">AIMason 智能助手</h3>
+          <div class="subtitle">AI-Powered Smart Assistant</div>
         </div>
       </div>
       <div class="status-indicator">
         <span class="status-dot" id="status-dot"></span>
-        <span id="status-text">Connecting...</span>
+        <span id="status-text">连接中...</span>
       </div>
     </div>
 
     <div class="messages" id="messages">
       <div class="welcome">
-        <h3>Welcome! 👋</h3>
-        <p>I'm your AI assistant. How can I help you today?</p>
+        <div class="welcome-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
+        </div>
+        <h3>您好，欢迎使用 AIMason 智能助手</h3>
+        <p>我是您的 AI 客服，有任何关于产品、服务的问题，都可以随时向我提问。</p>
+        <div class="quick-actions">
+          <div class="quick-action" onclick="quickSend('介绍一下 AIMason')">了解 AIMason</div>
+          <div class="quick-action" onclick="quickSend('你们有哪些产品？')">产品咨询</div>
+          <div class="quick-action" onclick="quickSend('如何联系客服？')">联系客服</div>
+        </div>
       </div>
     </div>
 
     <div class="typing" id="typing-indicator">
-      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="typing-inner">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <span class="typing-label">AI 正在思考...</span>
+      </div>
     </div>
 
     <div class="input-area">
-      <input type="text" id="msg-input" placeholder="Type your message..." disabled autocomplete="off">
-      <button class="send-btn" id="send-btn" onclick="sendMsg()" disabled>➤</button>
+      <input type="text" id="msg-input" placeholder="输入您的问题..." disabled autocomplete="off">
+      <button class="send-btn" id="send-btn" onclick="sendMsg()" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
     </div>
 
-    <div class="powered-by">Powered by <a href="#">OpenClaw AI</a></div>
+    <div class="powered-by">Powered by <a href="https://xiaowu-iot.com" target="_blank">XiaoWu IoT</a> · AIMason</div>
   </div>
 
   <script>
     let ws = null;
-    let userId = 'visitor_' + Math.random().toString(36).slice(2, 8);
-    let userName = 'Visitor';
+    let visitorNum = Math.floor(Math.random() * 9000) + 1000;
+    let userId = 'visitor_' + visitorNum;
+    let userName = '用户' + visitorNum;
     let reconnectTimer = null;
     let reconnectCount = 0;
 
@@ -709,9 +802,9 @@ function getEmbedHtmlPage() {
     // 从 URL 参数读取配置
     const params = new URLSearchParams(window.location.search);
     const chatId = params.get('chatId') || 'room_1';
-    const botName = params.get('botName') || 'AI Assistant';
+    const botName = params.get('botName') || 'AIMason';
     if (params.get('title')) {
-      document.querySelector('.chat-header h3').textContent = params.get('title');
+      document.getElementById('header-title').textContent = params.get('title');
     }
 
     function getWsUrl() {
@@ -720,26 +813,23 @@ function getEmbedHtmlPage() {
 
     function connect() {
       if (ws && ws.readyState <= 1) return;
-      statusText.textContent = 'Connecting...';
+      statusText.textContent = '连接中...';
       statusDot.classList.remove('online');
 
       ws = new WebSocket(getWsUrl());
 
       ws.onopen = () => {
         statusDot.classList.add('online');
-        statusText.textContent = 'Online';
+        statusText.textContent = '在线';
         inputEl.disabled = false;
         sendBtnEl.disabled = false;
         reconnectCount = 0;
-        if (messagesEl.querySelector('.welcome') && reconnectCount === 0) {
-          addBotMessage('Hello! I am your AI assistant. Ask me anything!');
-        }
       };
 
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
-          if (msg.type === 'system') return; // skip system messages in embed
+          if (msg.type === 'system') return;
           if (msg.type === 'error') return;
           if (msg.messageId && msg.content && msg.senderId !== userId) {
             hideTyping();
@@ -750,7 +840,7 @@ function getEmbedHtmlPage() {
 
       ws.onclose = () => {
         statusDot.classList.remove('online');
-        statusText.textContent = 'Offline';
+        statusText.textContent = '已断开';
         inputEl.disabled = true;
         sendBtnEl.disabled = true;
         reconnectCount++;
@@ -761,19 +851,21 @@ function getEmbedHtmlPage() {
       ws.onerror = () => {};
     }
 
+    function quickSend(text) {
+      inputEl.value = text;
+      sendMsg();
+    }
+
     function sendMsg() {
       const content = inputEl.value.trim();
       if (!content || !ws || ws.readyState !== WebSocket.OPEN) return;
 
-      // 移除欢迎消息
       const welcome = messagesEl.querySelector('.welcome');
       if (welcome) welcome.remove();
 
-      // 显示用户消息
       addUserMessage(content);
       inputEl.value = '';
 
-      // 发送到服务器
       ws.send(JSON.stringify({
         messageId: 'msg_' + Date.now(),
         chatId: chatId,
@@ -784,23 +876,22 @@ function getEmbedHtmlPage() {
         timestamp: Date.now(),
       }));
 
-      // 显示 typing
       showTyping();
     }
 
     function addUserMessage(text) {
       const div = document.createElement('div');
       div.className = 'message user';
+      const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       div.innerHTML = \`
         <div class="bubble">\${escapeHtml(text)}</div>
-        <div class="meta">\${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="meta">\${userName} · \${time}</div>
       \`;
       messagesEl.appendChild(div);
       scrollToBottom();
     }
 
     function addBotMessage(text, name, timestamp) {
-      // 移除欢迎消息
       const welcome = messagesEl.querySelector('.welcome');
       if (welcome) welcome.remove();
 
@@ -819,21 +910,16 @@ function getEmbedHtmlPage() {
     function showTyping() { typingEl.style.display = 'flex'; scrollToBottom(); }
     function hideTyping() { typingEl.style.display = 'none'; }
 
-    function scrollToBottom() {
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
+    function scrollToBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
 
     function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = String(text);
-      return div.innerHTML;
+      const d = document.createElement('div');
+      d.textContent = String(text);
+      return d.innerHTML;
     }
 
-    inputEl.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMsg();
-    });
+    inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMsg(); });
 
-    // 通知父窗口 iframe 已加载
     if (window.parent !== window) {
       window.parent.postMessage({ type: 'openclaw-chat-ready' }, '*');
     }
